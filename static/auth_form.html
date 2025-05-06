@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Hydra Auth Form</title>
+  <style>
+    body { font-family: sans-serif; padding: 1rem; max-width: 600px; margin: auto; }
+    label { display: block; margin-top: 1rem; }
+    select, input[type=text] { width: 100%; padding: 0.5rem; margin-top: 0.5rem; }
+    button { margin-top: 2rem; padding: 0.7rem 1.2rem; }
+  </style>
+</head>
+<body>
+  <h1>OAuth2 GET запрос</h1>
+  <form id="authForm">
+    <label>Client
+      <select id="client_id"></select>
+    </label>
+    <label>Redirect URI
+      <select id="redirect_uri"></select>
+    </label>
+    <label>Scope
+      <input type="text" id="scope" value="openid offline">
+    </label>
+    <label>State
+      <input type="text" id="state" value="random_state_value">
+    </label>
+    <label>Nonce
+      <input type="text" id="nonce" value="random_nonce_value">
+    </label>
+    <label>Response Type
+      <input type="text" id="response_type" value="code">
+    </label>
+    <button type="submit">Перейти по ссылке</button>
+  </form>
+
+  <script>
+    let clients = [];
+
+    async function loadClients() {
+      try {
+        const res = await fetch("/proxy/clients");
+
+        clients = await res.json();
+
+        const clientSelect = document.getElementById('client_id');
+        clientSelect.innerHTML = '';
+
+        for (const client of clients) {
+          const opt = document.createElement('option');
+          opt.value = client.client_id;
+          opt.textContent = client.client_name || client.client_id;
+          clientSelect.appendChild(opt);
+        }
+
+        updateRedirects();
+        clientSelect.addEventListener('change', updateRedirects);
+      } catch (e) {
+        alert('Ошибка при загрузке клиентов');
+        console.error(e);
+      }
+    }
+
+    function updateRedirects() {
+      const selectedId = document.getElementById('client_id').value;
+      const client = clients.find(c => c.client_id === selectedId);
+      const redirectSelect = document.getElementById('redirect_uri');
+      redirectSelect.innerHTML = '';
+
+      if (client) {
+        for (const uri of client.redirect_uris) {
+          const opt = document.createElement('option');
+          opt.value = uri;
+          opt.textContent = uri;
+          redirectSelect.appendChild(opt);
+        }
+        document.getElementById('scope').value = client.scope || '';
+      }
+    }
+
+    document.getElementById('authForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const client_id = document.getElementById('client_id').value;
+      const redirect_uri = document.getElementById('redirect_uri').value;
+      const scope = document.getElementById('scope').value;
+      const state = document.getElementById('state').value;
+      const nonce = document.getElementById('nonce').value;
+      const response_type = document.getElementById('response_type').value;
+
+      const query = new URLSearchParams({
+        client_id, redirect_uri, scope, state, nonce, response_type
+      });
+
+      const url = `http://127.0.0.1:4444/oauth2/auth?${query.toString()}`;
+      window.location.href = url;
+    });
+
+    loadClients();
+  </script>
+</body>
+</html>

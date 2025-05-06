@@ -1,0 +1,17 @@
+version: "3.9"
+
+services:
+  fastapi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hydra-flow-client
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./app:/app/app    # hot-reload при разработке
+    working_dir: /app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 3000 --reload
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
