@@ -1,0 +1,70 @@
+version: "3.9"
+
+services:
+
+  postgres:
+    image: postgres:15
+    container_name: hydra-postgres
+    environment:
+      POSTGRES_USER: hydra
+      POSTGRES_PASSWORD: hydra_pass123
+      POSTGRES_DB: hydra
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  hydra-migrate:
+    image: oryd/hydra:v2.2
+    depends_on:
+      - postgres
+    environment:
+      - DSN=postgres://hydra:hydra_pass123@postgres:5432/hydra?sslmode=disable
+    command: migrate sql -e --yes
+    restart: "no"
+
+  hydra:
+    image: oryd/hydra:v2.2
+    container_name: hydra
+    depends_on:
+      - hydra-migrate
+    environment:
+      - DSN=postgres://hydra:hydra_pass123@postgres:5432/hydra?sslmode=disable
+    volumes:
+      - ./hydra/config:/etc/hydra
+    command: serve all --dev -c /etc/hydra/hydra.yml
+    ports:
+      - "4444:4444"
+      - "4445:4445"
+    restart: unless-stopped
+
+  hydra-init:
+    image: curlimages/curl:latest
+    container_name: hydra-init
+    depends_on:
+      - hydra
+    volumes:
+      - ./init:/init
+    entrypoint: ["/bin/sh", "/init/init-hydra.sh"]
+    restart: "no"
+
+  fastapi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hydra-flow-client
+    volumes:
+      - ./app:/app/app
+    working_dir: /app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 3000 --reload
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./app/.env
+    depends_on:
+      - hydra
+    restart: unless-stopped
+
+volumes:
+  pgdata:

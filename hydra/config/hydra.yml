@@ -1,0 +1,34 @@
+serve:
+  public:
+    host: 0.0.0.0
+    port: 4444
+    tls:
+      enabled: false
+  admin:
+    host: 0.0.0.0
+    port: 4445
+    tls:
+      enabled: false
+  cookies:
+    same_site_mode: Lax
+
+dsn: postgres://hydra:hydra_pass123@postgres:5432/hydra?sslmode=disable
+
+urls:
+  self:
+    issuer: http://localhost:4444
+  login: http://localhost:3000/login
+  consent: http://localhost:3000/consent
+  logout: http://localhost:3000/logout
+
+secrets:
+  system:
+    - youReallyNeedToChangeThis
+
+oidc:
+  subject_identifiers:
+    supported_types:
+      - pairwise
+      - public
+    pairwise:
+      salt: youReallyNeedToChangeThis

@@ -1,15 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <title>Hydra Auth Form</title>
   <style>
-    body { font-family: sans-serif; padding: 1rem; max-width: 600px; margin: auto; }
-    label { display: block; margin-top: 1rem; }
-    select, input[type=text] { width: 100%; padding: 0.5rem; margin-top: 0.5rem; }
-    button { margin-top: 2rem; padding: 0.7rem 1.2rem; }
+    body {
+      font-family: sans-serif;
+      padding: 1rem;
+      max-width: 600px;
+      margin: auto;
+    }
+
+    label {
+      display: block;
+      margin-top: 1rem;
+    }
+
+    select,
+    input[type=text] {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    button {
+      margin-top: 2rem;
+      padding: 0.7rem 1.2rem;
+    }
   </style>
 </head>
+
 <body>
   <h1>OAuth2 GET запрос</h1>
   <form id="authForm">
@@ -91,11 +112,14 @@
         client_id, redirect_uri, scope, state, nonce, response_type
       });
 
-      const url = `http://127.0.0.1:4444/oauth2/auth?${query.toString()}`;
+      const url = `http://localhost:4444/oauth2/auth?${query.toString()}`;
+<!--      const url = `http://host.docker.internal:4444/oauth2/auth?${query.toString()}`;-->
+
       window.location.href = url;
     });
 
     loadClients();
   </script>
 </body>
+
 </html>

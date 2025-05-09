@@ -1,0 +1,12 @@
+[Unit]
+Description=HydraClient FastAPI App
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/home/$USER/programming/hydraFlowClient/hydra-client-docker.sh
+WorkingDirectory=/home/$USER/programming/hydraFlowClient
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

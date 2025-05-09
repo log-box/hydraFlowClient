@@ -1,25 +1,39 @@
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import RedirectResponse
 import httpx
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
+from fastapi.responses import RedirectResponse
+from fastapi.responses import Response
+from fastapi.staticfiles import StaticFiles
+
 from app.config import settings
 from app.schemas import LoginRequestData, ConsentRequestData
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
 
 app = FastAPI()
 
 # Подключаем статику
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+
+@app.get("/favicon.ico")
+async def favicon():
+    return Response(
+        content=b"",  # или отдать реальный .ico файл
+        media_type="image/x-icon",
+        headers={"Cache-Control": "public, max-age=86400"}
+    )
+
+
 # Отдаём html как корневую страницу
 @app.get("/")
 async def serve_form():
     return FileResponse("static/auth_form.html")
 
+
 @app.get("/proxy/clients")
 async def proxy_clients():
     async with httpx.AsyncClient() as client:
-        response = await client.get("http://127.0.0.1:4445/admin/clients")
+        # response = await client.get("http://127.0.0.1:4445/admin/clients")
+        response = await client.get(f"{settings.HYDRA_PRIVATE_URL}/admin/clients")
         response.raise_for_status()
         return response.json()
 
@@ -99,6 +113,7 @@ async def redirect_uri_endpoint(code: str, scope: str, state: str):
             return token_data
     except httpx.HTTPStatusError as e:
         raise HTTPException(status_code=e.response.status_code, detail="Token exchange failed")
+
 
 @app.get("/redirect-uri-second")
 async def redirect_uri_second_endpoint(code: str, scope: str, state: str):
