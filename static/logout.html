@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Завершение сессии</title>
+  <style>
+    body { font-family: monospace; background: #f9f9f9; color: #333; padding: 1rem; }
+    #log { white-space: pre-wrap; border: 1px solid #ccc; padding: 1rem; background: #fff; }
+  </style>
+  <script>
+    function log(msg) {
+      console.log(msg);
+      const el = document.getElementById('log');
+      el.textContent += msg + '\n';
+    }
+
+    window.onload = async () => {
+      log("=== Logout Flow Started ===");
+
+      const params = new URLSearchParams(window.location.search);
+      const challenge = params.get("logout_challenge");
+      log("Parsed logout_challenge: " + challenge);
+
+      if (!challenge) {
+        const err = "Ошибка: отсутствует logout_challenge в URL";
+        log(err);
+        return;
+      }
+
+      try {
+        const url = `/logout_process?logout_challenge=${encodeURIComponent(challenge)}`;
+        log("Запрос к API: " + url);
+
+        const response = await fetch(url);
+        log("Ответ получен, статус: " + response.status);
+
+        const data = await response.json();
+        log("JSON ответ: " + JSON.stringify(data));
+
+        if (data.redirect_to) {
+          log("Редиректим на: " + data.redirect_to);
+          window.location.href = data.redirect_to;
+        } else {
+          log("Ошибка: redirect_to отсутствует в ответе API.");
+        }
+      } catch (e) {
+        log("Исключение при fetch /logout_process:");
+        log(e.toString());
+      }
+    };
+  </script>
+</head>
+<body>
+  <h2>Завершение сессии...</h2>
+  <div id="log">[Журнал выполнения]</div>
+</body>
+</html>

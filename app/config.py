@@ -17,12 +17,13 @@ class Settings:
 
     HYDRA_PRIVATE_URL = os.getenv("HYDRA_PRIVATE_URL").strip()
     HYDRA_URL = os.getenv("HYDRA_URL").strip()
+    HYDRA_OUTSIDE_URL = os.getenv("HYDRA_OUTSIDE_URL").strip()
     CLIENT_ID = os.getenv("CLIENT_ID").strip()
     CLIENT_ID_SECOND = os.getenv("CLIENT_ID_SECOND").strip()
     CLIENT_SECRET = os.getenv("CLIENT_SECRET") # если нужен
     REDIRECT_URI = os.getenv("REDIRECT_URI").strip()
     REDIRECT_URI_SECOND = os.getenv("REDIRECT_URI_SECOND").strip()
-
+    POST_LOGOUT_REDIRECT_URI = os.getenv("POST_LOGOUT_REDIRECT_URI").strip()
     LOGIN_SUBJECT = os.getenv("LOGIN_SUBJECT")
     LOGIN_ACR = os.getenv("LOGIN_ACR")
     LOGIN_AMR = os.getenv("LOGIN_AMR", "").replace("+", " ").split(",")
