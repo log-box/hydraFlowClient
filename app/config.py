@@ -25,15 +25,18 @@ class Settings:
     REDIRECT_URI_SECOND = os.getenv("REDIRECT_URI_SECOND").strip()
     POST_LOGOUT_REDIRECT_URI = os.getenv("POST_LOGOUT_REDIRECT_URI").strip()
     LOGIN_SUBJECT = os.getenv("LOGIN_SUBJECT")
-    LOGIN_ACR = os.getenv("LOGIN_ACR")
-    LOGIN_AMR = os.getenv("LOGIN_AMR", "").replace("+", " ").split(",")
+    LOGIN_CREDENTIAL = os.getenv("LOGIN_CREDENTIAL")
+    LOGIN_ACR = os.getenv("LOGIN_ACR", "").strip()
+    LOGIN_AMR = [s.strip() for s in os.getenv("LOGIN_AMR", "").split(",") if s.strip()]
     LOGIN_CONTEXT = json.loads(os.getenv("LOGIN_CONTEXT", "{}"))
     EXTEND_SESSION_LIFESPAN = str2bool(os.getenv("EXTEND_SESSION_LIFESPAN", "true"))
     REMEMBER = str2bool(os.getenv("REMEMBER", "true"))
     REMEMBER_FOR = int(os.getenv("REMEMBER_FOR", "0"))
 
     CONSENT_CONTEXT = json.loads(os.getenv("CONSENT_CONTEXT", "{}"))
-    GRANT_ACCESS_TOKEN_AUDIENCE = os.getenv("GRANT_ACCESS_TOKEN_AUDIENCE", "").split(",")
+    GRANT_ACCESS_TOKEN_AUDIENCE = [s.strip() for s in os.getenv("GRANT_ACCESS_TOKEN_AUDIENCE", "").split(",") if
+                                   s.strip()]
+    # GRANT_ACCESS_TOKEN_AUDIENCE = os.getenv("GRANT_ACCESS_TOKEN_AUDIENCE", "").split(",")
     GRANT_SCOPE = os.getenv("GRANT_SCOPE", "").split(",")
     SESSION_ID_TOKEN = json.loads(os.getenv("SESSION_ID_TOKEN", "{}"))
     SESSION_ACCESS_TOKEN = json.loads(os.getenv("SESSION_ACCESS_TOKEN", "{}"))

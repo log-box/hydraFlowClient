@@ -1,15 +1,16 @@
 import html
 import json
 import logging
-import httpx
 from html import escape
 from urllib.parse import urlparse, parse_qs, urlencode
+
+import httpx
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
-from app.schemas import LoginRequestData, ConsentRequestData
+from app.schemas import LoginRequestData, ConsentRequestData, LoginSettingsData, ConsentSession
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -23,6 +24,20 @@ app = FastAPI()
 
 # Подключаем статику
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
+@app.get("/login_settings", response_model=LoginSettingsData)
+async def get_login_settings():
+    return LoginSettingsData(
+        subject=settings.LOGIN_SUBJECT,
+        credential=settings.LOGIN_CREDENTIAL,
+        acr=settings.LOGIN_ACR,
+        amr=settings.LOGIN_AMR,
+        context=settings.LOGIN_CONTEXT,
+        extend_session_lifespan=settings.EXTEND_SESSION_LIFESPAN,
+        remember=settings.REMEMBER,
+        remember_for=settings.REMEMBER_FOR
+    )
 
 
 @app.get("/favicon.ico")
@@ -47,9 +62,11 @@ async def proxy_clients():
         response.raise_for_status()
         return response.json()
 
+
 @app.get("/logout")
 async def serve_logout_page():
     return FileResponse("static/logout.html")
+
 
 @app.get("/logout_process")
 async def logout_endpoint(logout_challenge: str):
@@ -80,7 +97,6 @@ async def logout_endpoint(logout_challenge: str):
     except Exception as e:
         logger.exception("Unexpected error during logout")
         raise HTTPException(status_code=500, detail=str(e))
-
 
 
 async def get_client_info_from_challenge(login_challenge: str) -> bool:
@@ -129,7 +145,7 @@ async def login_endpoint(login_challenge: str):
         context=settings.LOGIN_CONTEXT,
         extend_session_lifespan=settings.EXTEND_SESSION_LIFESPAN,
         remember=settings.REMEMBER,
-        remember_for=settings.REMEMBER_FOR
+        remember_for=settings.REMEMBER_FOR,
     )
     try:
         async with httpx.AsyncClient() as client:
@@ -155,10 +171,10 @@ async def consent_endpoint(consent_challenge: str):
         grant_scope=settings.GRANT_SCOPE,
         remember=settings.REMEMBER,
         remember_for=settings.REMEMBER_FOR,
-        session={
-            "id_token": settings.SESSION_ID_TOKEN,
-            "access_token": settings.SESSION_ACCESS_TOKEN
-        }
+        session=ConsentSession(
+                id_token=settings.SESSION_ID_TOKEN,
+                access_token=settings.SESSION_ACCESS_TOKEN
+            )
     )
     try:
         async with httpx.AsyncClient() as client:

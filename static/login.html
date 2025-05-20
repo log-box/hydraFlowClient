@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Вход</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 40px auto; }
+    label { display: block; margin-top: 1em; }
+    input[type="text"], input[type="number"] { width: 100%; padding: 8px; }
+    .button-group { margin-top: 2em; display: flex; justify-content: flex-end; gap: 1em; }
+    button { padding: 10px 20px; }
+  </style>
+</head>
+<body>
+  <h2>Вход</h2>
+  <form id="loginForm">
+    <label>Subject
+      <input type="text" name="subject">
+    </label>
+    <label>Credential
+      <input type="text" name="credential">
+    </label>
+    <label>ACR
+      <input type="text" name="acr">
+    </label>
+    <label>AMR
+      <input type="text" name="amr">
+    </label>
+    <label>Context
+      <input type="text" name="context">
+    </label>
+    <label>
+      <input type="checkbox" name="extend_session_lifespan"> Extend session lifespan
+    </label>
+    <label>
+      <input type="checkbox" name="remember"> Remember
+    </label>
+    <label>Remember For (секунды)
+      <input type="number" name="remember_for">
+    </label>
+
+    <div class="button-group">
+      <button type="button" onclick="onCancel()">Отмена</button>
+      <button type="submit">Далее</button>
+    </div>
+  </form>
+
+<script>
+  async function loadSettings() {
+    try {
+      const res = await fetch('/login_settings');
+      const data = await res.json();
+      const form = document.forms.loginForm;
+      for (const key in data) {
+        if (form.elements[key]) {
+          if (form.elements[key].type === 'checkbox') {
+            form.elements[key].checked = data[key];
+          } else {
+            form.elements[key].value = data[key];
+          }
+        }
+      }
+    } catch (e) {
+      alert('Ошибка загрузки настроек');
+    }
+  }
+
+  async function onSubmit(continueFlow) {
+    const form = document.forms.loginForm;
+
+    let context;
+    try {
+      context = JSON.parse(form.context.value);
+    } catch (e) {
+      alert("Поле context должно быть валидным JSON");
+      return;
+    }
+
+    const data = {
+      subject: form.subject.value,
+      credential: form.credential.value,
+      acr: form.acr.value.split(",").map(s => s.trim()),
+      amr: form.amr.value.split(",").map(s => s.trim()),
+      context: context,
+      extend_session_lifespan: form.extend_session_lifespan.checked,
+      remember: form.remember.checked,
+      remember_for: parseInt(form.remember_for.value, 10),
+      continue: continueFlow
+    };
+
+    try {
+      const res = await fetch('/login_process', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (res.status === 302 || res.redirected) {
+        // Некоторые браузеры автоматически переходят, но на всякий случай:
+        location.href = res.url;
+      } else if (res.ok) {
+        const result = await res.json();
+        if (result.redirect_url) {
+          location.href = result.redirect_url;
+        } else {
+          alert('Успешно, но без redirect_url');
+        }
+      } else {
+        const errorText = await res.text();
+        alert('Ошибка: ' + errorText);
+      }
+    } catch (e) {
+      alert('Ошибка отправки формы: ' + e);
+    }
+  }
+
+  loadSettings();
+</script>
+
+</body>
+</html>
