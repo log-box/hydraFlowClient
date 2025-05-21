@@ -61,7 +61,7 @@ services:
     ports:
       - "3000:3000"
     env_file:
-      - ./app/.env
+      - .env
     depends_on:
       - hydra
     restart: unless-stopped

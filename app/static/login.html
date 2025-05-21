@@ -120,7 +120,7 @@ async function onSubmit(continueFlow) {
     if (res.ok) {
       const result = await res.json();
       if (result.redirect_url) {
-        location.href = result.redirect_url;  // ← можно оставить как есть
+        location.href = result.redirect_url;
       } else {
         alert('Успешно, но без redirect_url');
       }
