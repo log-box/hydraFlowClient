@@ -31,3 +31,21 @@ class LoginSettingsData(BaseModel):
     extend_session_lifespan: bool
     remember: bool
     remember_for: int
+
+
+class LoginFormSubmitData(LoginSettingsData):
+    login_challenge: str
+    continue_: bool
+
+
+# class LoginSettingsData(BaseModel):
+#     subject: str
+#     credential: str
+#     acr: str
+#     amr: List[str]
+#     context: Optional[Dict[str, Any]] = None
+#     extend_session_lifespan: bool
+#     remember: bool
+#     remember_for: int
+#     continue_: bool
+#     login_challenge: str
