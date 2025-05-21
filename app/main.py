@@ -6,11 +6,12 @@ from urllib.parse import urlparse, parse_qs, urlencode
 
 import httpx
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, Response, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
-from app.schemas import ConsentSettingsData, LoginSettingsData, ConsentSession, LoginFormSubmitData
+from app.schemas import ConsentSettingsData, LoginSettingsData, ConsentSession, LoginFormSubmitData, \
+    ConsentFormSubmitData
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -26,67 +27,6 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
-@app.get("/login_settings", response_model=LoginSettingsData)
-async def get_login_settings():
-    return LoginSettingsData(
-        subject=settings.LOGIN_SUBJECT,
-        credential=settings.LOGIN_CREDENTIAL,
-        acr=settings.LOGIN_ACR,
-        amr=settings.LOGIN_AMR,
-        context=settings.LOGIN_CONTEXT,
-        extend_session_lifespan=settings.EXTEND_SESSION_LIFESPAN,
-        remember=settings.REMEMBER,
-        remember_for=settings.REMEMBER_FOR,
-    )
-
-@app.get("/consent_settings", response_model=ConsentSettingsData)
-async def get_consent_settings():
-    return ConsentSettingsData(
-        grant_access_token_audience=settings.GRANT_ACCESS_TOKEN_AUDIENCE,
-        grant_scope=settings.GRANT_SCOPE,
-        context=settings.CONSENT_CONTEXT,
-        session=ConsentSession(
-            id_token=settings.SESSION_ID_TOKEN,
-            access_token=settings.SESSION_ACCESS_TOKEN
-        ),
-        remember=settings.REMEMBER,
-        remember_for=settings.REMEMBER_FOR,
-    )
-
-
-@app.get("/consent")
-async def login_form_page():
-    return FileResponse("static/consent.html")  # путь подстрой под себя
-
-
-@app.get("/consent_process")
-async def consent_endpoint(consent_challenge: str):
-    consent_data = ConsentSettingsData(
-        context=settings.CONSENT_CONTEXT,
-        grant_access_token_audience=settings.GRANT_ACCESS_TOKEN_AUDIENCE,
-        grant_scope=settings.GRANT_SCOPE,
-        remember=settings.REMEMBER,
-        remember_for=settings.REMEMBER_FOR,
-        session=ConsentSession(
-                id_token=settings.SESSION_ID_TOKEN,
-                access_token=settings.SESSION_ACCESS_TOKEN
-            )
-    )
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.put(
-                f"{settings.HYDRA_PRIVATE_URL}/admin/oauth2/auth/requests/consent/accept?consent_challenge={consent_challenge}",
-                json=consent_data.dict()
-            )
-            response.raise_for_status()
-            redirect_url = response.json().get("redirect_to")
-            if not redirect_url:
-                raise HTTPException(status_code=500, detail="No redirect URL received from Hydra")
-            return RedirectResponse(url=redirect_url, status_code=302)
-    except httpx.HTTPStatusError as e:
-        raise HTTPException(status_code=e.response.status_code, detail="Consent failed")
-
-
 @app.get("/favicon.ico")
 async def favicon():
     return Response(
@@ -94,90 +34,6 @@ async def favicon():
         media_type="image/x-icon",
         headers={"Cache-Control": "public, max-age=86400"}
     )
-
-
-# Отдаём html как корневую страницу
-@app.get("/")
-async def serve_form():
-    return FileResponse("static/auth_form.html")
-
-
-@app.get("/proxy/clients")
-async def proxy_clients():
-    async with httpx.AsyncClient() as client:
-        response = await client.get(f"{settings.HYDRA_PRIVATE_URL}/admin/clients")
-        response.raise_for_status()
-        return response.json()
-
-@app.get("/login")
-async def login_form_page():
-    return FileResponse("static/login.html")  # путь подстрой под себя
-
-@app.post("/login_process")
-async def login_endpoint(data: LoginFormSubmitData):
-    if not data.continue_:
-        return JSONResponse(status_code=501, content={"detail": "В запросе нет данных"})
-    await get_client_info_from_challenge(data.login_challenge)
-    login_payload = {
-        "subject": data.subject,
-        "acr": data.acr,
-        "amr": data.amr,
-        "context": data.context,
-        "extend_session_lifespan": data.extend_session_lifespan,
-        "remember": data.remember,
-        "remember_for": data.remember_for
-    }
-    settings.LOGIN_CREDENTIAL = data.credential
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.put(
-                f"{settings.HYDRA_PRIVATE_URL}/admin/oauth2/auth/requests/login/accept?login_challenge={data.login_challenge}",
-                json=login_payload
-            )
-            response.raise_for_status()
-            redirect_url = response.json().get("redirect_to")
-            if not redirect_url:
-                raise HTTPException(status_code=500, detail="No redirect URL from Hydra")
-            return JSONResponse(content={"redirect_url": redirect_url})
-            # return RedirectResponse(url=redirect_url, status_code=302)
-    except httpx.HTTPStatusError as e:
-        raise HTTPException(status_code=e.response.status_code, detail="Hydra login error")
-
-
-@app.get("/logout")
-async def serve_logout_page():
-    return FileResponse("static/logout.html")
-
-
-@app.get("/logout_process")
-async def logout_endpoint(logout_challenge: str):
-    if not isinstance(logout_challenge, str):
-        raise HTTPException(status_code=400, detail="logout_challenge must be a string")
-    logger.info("Start /logout handler")
-    logger.debug(f"Received logout_challenge: {logout_challenge}")
-
-    url = f"{settings.HYDRA_PRIVATE_URL}/admin/oauth2/auth/requests/logout/accept"
-
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.put(url, params={"logout_challenge": logout_challenge})
-            response.raise_for_status()
-            data = response.json()
-
-            redirect_to = data.get("redirect_to")
-            if not redirect_to:
-                logger.error("Missing 'redirect_to' in Hydra response")
-                raise HTTPException(status_code=500, detail="Hydra response missing 'redirect_to'")
-
-            logger.info(f"Received redirect_to: {redirect_to}")
-            return JSONResponse(content={"redirect_to": redirect_to})
-
-    except httpx.HTTPStatusError as e:
-        logger.exception("Hydra request failed")
-        raise HTTPException(status_code=e.response.status_code, detail=e.response.text)
-    except Exception as e:
-        logger.exception("Unexpected error during logout")
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 async def get_client_info_from_challenge(login_challenge: str) -> bool:
@@ -216,62 +72,176 @@ async def get_client_info_from_challenge(login_challenge: str) -> bool:
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
 
+async def get_consent_info_from_challenge(consent_challenge: str) -> dict:
+    url = f"{settings.HYDRA_PRIVATE_URL}/admin/oauth2/auth/requests/consent"
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, params={"consent_challenge": consent_challenge})
+        response.raise_for_status()
+        return response.json()
 
 
-
-    # await get_client_info_from_challenge(login_challenge)
-    # login_data = LoginSettingsData(
-    #     subject=settings.LOGIN_SUBJECT,
-    #     credential=settings.LOGIN_CREDENTIAL,
-    #     acr=settings.LOGIN_ACR,
-    #     amr=settings.LOGIN_AMR,
-    #     context=settings.LOGIN_CONTEXT,
-    #     extend_session_lifespan=settings.EXTEND_SESSION_LIFESPAN,
-    #     remember=settings.REMEMBER,
-    #     remember_for=settings.REMEMBER_FOR
-    # )
-    # try:
-    #     async with httpx.AsyncClient() as client:
-    #         response = await client.put(
-    #             f"{settings.HYDRA_PRIVATE_URL}/admin/oauth2/auth/requests/login/accept?login_challenge={login_challenge}",
-    #             json=login_data.dict()
-    #         )
-    #         response.raise_for_status()
-    #         redirect_url = response.json().get("redirect_to")
-    #         if not redirect_url:
-    #             raise HTTPException(status_code=500, detail="No redirect URL received from Hydra")
-    #         return RedirectResponse(url=redirect_url, status_code=302)
-    # except httpx.HTTPStatusError as e:
-    #     raise HTTPException(status_code=e.response.status_code, detail="Login failed")
+# Отдаём html как корневую страницу
+@app.get("/")
+async def serve_form():
+    return FileResponse("static/auth_form.html")
 
 
-@app.get("/consent")
-async def consent_endpoint(consent_challenge: str):
-    print()
-    consent_data = ConsentSettingsData(
-        context=settings.CONSENT_CONTEXT,
-        grant_access_token_audience=settings.GRANT_ACCESS_TOKEN_AUDIENCE,
-        grant_scope=settings.GRANT_SCOPE,
+@app.get("/proxy/clients")
+async def proxy_clients():
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"{settings.HYDRA_PRIVATE_URL}/admin/clients")
+        response.raise_for_status()
+        return response.json()
+
+
+@app.get("/login_settings", response_model=LoginSettingsData)
+async def get_login_settings():
+    return LoginSettingsData(
+        subject=settings.LOGIN_SUBJECT,
+        credential=settings.LOGIN_CREDENTIAL,
+        acr=settings.LOGIN_ACR,
+        amr=settings.LOGIN_AMR,
+        context=settings.LOGIN_CONTEXT,
+        extend_session_lifespan=settings.EXTEND_SESSION_LIFESPAN,
         remember=settings.REMEMBER,
         remember_for=settings.REMEMBER_FOR,
-        session=ConsentSession(
-                id_token=settings.SESSION_ID_TOKEN,
-                access_token=settings.SESSION_ACCESS_TOKEN
-            )
     )
+
+
+@app.get("/login")
+async def login_form_page():
+    return FileResponse("static/login.html")  # путь подстрой под себя
+
+
+@app.post("/login_process")
+async def login_endpoint(data: LoginFormSubmitData):
+    if not data.continue_:
+        return JSONResponse(status_code=501, content={"detail": "В запросе нет данных"})
+    await get_client_info_from_challenge(data.login_challenge)
+    login_payload = {
+        "subject": data.subject,
+        "acr": data.acr,
+        "amr": data.amr,
+        "context": data.context,
+        "extend_session_lifespan": data.extend_session_lifespan,
+        "remember": data.remember,
+        "remember_for": data.remember_for
+    }
+    settings.LOGIN_CREDENTIAL = data.credential
     try:
         async with httpx.AsyncClient() as client:
             response = await client.put(
-                f"{settings.HYDRA_PRIVATE_URL}/admin/oauth2/auth/requests/consent/accept?consent_challenge={consent_challenge}",
-                json=consent_data.dict()
+                f"{settings.HYDRA_PRIVATE_URL}/admin/oauth2/auth/requests/login/accept?login_challenge={data.login_challenge}",
+                json=login_payload
+            )
+            response.raise_for_status()
+            redirect_url = response.json().get("redirect_to")
+            if not redirect_url:
+                raise HTTPException(status_code=500, detail="No redirect URL from Hydra")
+            return JSONResponse(content={"redirect_url": redirect_url})
+            # return RedirectResponse(url=redirect_url, status_code=302)
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=e.response.status_code, detail="Hydra login error")
+
+
+@app.get("/consent_settings", response_model=ConsentSettingsData)
+async def get_consent_settings():
+    return ConsentSettingsData(
+        grant_access_token_audience=settings.GRANT_ACCESS_TOKEN_AUDIENCE,
+        grant_scope=settings.GRANT_SCOPE,
+        context=settings.CONSENT_CONTEXT,
+        session=ConsentSession(
+            id_token=settings.SESSION_ID_TOKEN,
+            access_token=settings.SESSION_ACCESS_TOKEN
+        ),
+        remember=settings.REMEMBER,
+        remember_for=settings.REMEMBER_FOR,
+    )
+
+
+@app.get("/consent")
+async def login_form_page():
+    return FileResponse("static/consent.html")  # путь подстрой под себя
+
+
+@app.post("/consent_process")
+async def consent_endpoint(data: ConsentFormSubmitData):
+    if not data.continue_:
+        return JSONResponse(status_code=501, content={"detail": "В запросе нет данных"})
+
+    await get_consent_info_from_challenge(data.consent_challenge)
+
+    # Преобразуем Pydantic-модель в dict и добавим/переопределим поля
+    session_data = {
+        "id_token": {
+            **(data.session.id_token or {}),
+            # "custom_claim": "value",
+            "login": settings.LOGIN_CREDENTIAL,
+        },
+        "access_token": {
+            **(data.session.access_token or {}),
+            # "identity_id": "111",
+        }
+    }
+
+    consent_payload = {
+        "context": data.context,
+        "grant_access_token_audience": data.grant_access_token_audience,
+        "grant_scope": data.grant_scope,
+        "session": session_data,
+        "remember": data.remember,
+        "remember_for": data.remember_for,
+    }
+
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.put(
+                f"{settings.HYDRA_PRIVATE_URL}/admin/oauth2/auth/requests/consent/accept?consent_challenge={data.consent_challenge}",
+                json=consent_payload
             )
             response.raise_for_status()
             redirect_url = response.json().get("redirect_to")
             if not redirect_url:
                 raise HTTPException(status_code=500, detail="No redirect URL received from Hydra")
-            return RedirectResponse(url=redirect_url, status_code=302)
+            return JSONResponse(content={"redirect_url": redirect_url})
     except httpx.HTTPStatusError as e:
-        raise HTTPException(status_code=e.response.status_code, detail="Consent failed")
+        raise HTTPException(status_code=e.response.status_code, detail="Hydra Consent failed")
+
+
+@app.get("/logout")
+async def serve_logout_page():
+    return FileResponse("static/logout.html")
+
+
+@app.get("/logout_process")
+async def logout_endpoint(logout_challenge: str):
+    if not isinstance(logout_challenge, str):
+        raise HTTPException(status_code=400, detail="logout_challenge must be a string")
+    logger.info("Start /logout handler")
+    logger.debug(f"Received logout_challenge: {logout_challenge}")
+
+    url = f"{settings.HYDRA_PRIVATE_URL}/admin/oauth2/auth/requests/logout/accept"
+
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.put(url, params={"logout_challenge": logout_challenge})
+            response.raise_for_status()
+            data = response.json()
+
+            redirect_to = data.get("redirect_to")
+            if not redirect_to:
+                logger.error("Missing 'redirect_to' in Hydra response")
+                raise HTTPException(status_code=500, detail="Hydra response missing 'redirect_to'")
+
+            logger.info(f"Received redirect_to: {redirect_to}")
+            return JSONResponse(content={"redirect_to": redirect_to})
+
+    except httpx.HTTPStatusError as e:
+        logger.exception("Hydra request failed")
+        raise HTTPException(status_code=e.response.status_code, detail=e.response.text)
+    except Exception as e:
+        logger.exception("Unexpected error during logout")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/redirect-uri")
