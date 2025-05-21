@@ -10,7 +10,7 @@ from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Resp
 from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
-from app.schemas import LoginRequestData, ConsentRequestData, LoginSettingsData, ConsentSession, LoginFormSubmitData
+from app.schemas import ConsentSettingsData, LoginSettingsData, ConsentSession, LoginFormSubmitData
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -39,6 +39,52 @@ async def get_login_settings():
         remember_for=settings.REMEMBER_FOR,
     )
 
+@app.get("/consent_settings", response_model=ConsentSettingsData)
+async def get_consent_settings():
+    return ConsentSettingsData(
+        grant_access_token_audience=settings.GRANT_ACCESS_TOKEN_AUDIENCE,
+        grant_scope=settings.GRANT_SCOPE,
+        context=settings.CONSENT_CONTEXT,
+        session=ConsentSession(
+            id_token=settings.SESSION_ID_TOKEN,
+            access_token=settings.SESSION_ACCESS_TOKEN
+        ),
+        remember=settings.REMEMBER,
+        remember_for=settings.REMEMBER_FOR,
+    )
+
+
+@app.get("/consent")
+async def login_form_page():
+    return FileResponse("static/consent.html")  # путь подстрой под себя
+
+
+@app.get("/consent_process")
+async def consent_endpoint(consent_challenge: str):
+    consent_data = ConsentSettingsData(
+        context=settings.CONSENT_CONTEXT,
+        grant_access_token_audience=settings.GRANT_ACCESS_TOKEN_AUDIENCE,
+        grant_scope=settings.GRANT_SCOPE,
+        remember=settings.REMEMBER,
+        remember_for=settings.REMEMBER_FOR,
+        session=ConsentSession(
+                id_token=settings.SESSION_ID_TOKEN,
+                access_token=settings.SESSION_ACCESS_TOKEN
+            )
+    )
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.put(
+                f"{settings.HYDRA_PRIVATE_URL}/admin/oauth2/auth/requests/consent/accept?consent_challenge={consent_challenge}",
+                json=consent_data.dict()
+            )
+            response.raise_for_status()
+            redirect_url = response.json().get("redirect_to")
+            if not redirect_url:
+                raise HTTPException(status_code=500, detail="No redirect URL received from Hydra")
+            return RedirectResponse(url=redirect_url, status_code=302)
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=e.response.status_code, detail="Consent failed")
 
 
 @app.get("/favicon.ico")
@@ -202,7 +248,7 @@ async def get_client_info_from_challenge(login_challenge: str) -> bool:
 @app.get("/consent")
 async def consent_endpoint(consent_challenge: str):
     print()
-    consent_data = ConsentRequestData(
+    consent_data = ConsentSettingsData(
         context=settings.CONSENT_CONTEXT,
         grant_access_token_audience=settings.GRANT_ACCESS_TOKEN_AUDIENCE,
         grant_scope=settings.GRANT_SCOPE,

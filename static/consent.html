@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Выдача согласия и кастомизация ID Token</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 40px auto; }
+    label { display: block; margin-top: 1em; }
+    input[type="text"], input[type="number"] { width: 100%; padding: 8px; }
+    .button-group { margin-top: 2em; display: flex; justify-content: flex-end; gap: 1em; }
+    button { padding: 10px 20px; }
+  </style>
+</head>
+<body>
+  <h2>Выдача согласия и кастомизация ID Token</h2>
+  <form id="consentForm">
+
+    <label>Куда разрешен доступ
+      <input type="text" name="grant_access_token_audience">
+    </label>
+    <label>Разрешенный scope
+      <input type="text" name="grant_scope">
+    </label>
+    <label>Сохранить сессию
+      <input type="checkbox" name="remember">
+    </label>
+    <label>На сколько сохранить сессию (секунды). Значение 0 - без ограничения
+      <input type="number" name="remember_for">
+    </label>
+    <label>Context
+      <input type="text" name="context">
+    </label>
+    <label>Клеймы ID token
+      <input type="text" name="session.id_token">
+    </label>
+    <label>Клеймы Access token
+      <input type="text" name="session.access_token">
+    </label>
+    <input type="hidden" name="consent_challenge" value="">
+    <div class="button-group">
+      <button type="button" onclick="onSubmit(false)">Отмена</button>
+      <button type="button" onclick="onSubmit(true)">Далее</button>
+    </div>
+  </form>
+
+<script>
+function getQueryParam(name) {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get(name);
+}
+
+async function loadSettings() {
+  try {
+    const challenge = getQueryParam("consent_challenge");
+    if (!challenge) {
+      alert("consent_challenge не указан");
+      return;
+    }
+
+    const form = document.forms.consentForm;
+    form.consent_challenge.value = challenge;
+
+    const res = await fetch('/consent_settings');
+    const data = await res.json();
+
+    for (const key in data) {
+      const el = form.elements[key];
+      if (!el) continue;
+
+      if (el.type === 'checkbox') {
+        el.checked = Boolean(data[key]);
+      } else if (Array.isArray(data[key])) {
+        el.value = data[key].join(",");
+      } else if (typeof data[key] === 'object' && data[key] !== null) {
+        el.value = JSON.stringify(data[key]);
+      } else {
+        el.value = data[key];
+      }
+    }
+  } catch (e) {
+    alert('Ошибка загрузки настроек: ' + e.message);
+  }
+}
+
+async function onSubmit(continueFlow) {
+  const form = document.forms.consentForm;
+
+  let idToken = {};
+  let accessToken = {};
+
+  try {
+    idToken = form['session.id_token'].value ? JSON.parse(form['session.id_token'].value) : {};
+  } catch (e) {
+    alert("Поле ID Token должно быть валидным JSON");
+    return;
+  }
+
+  try {
+    accessToken = form['session.access_token'].value ? JSON.parse(form['session.access_token'].value) : {};
+  } catch (e) {
+    alert("Поле Access Token должно быть валидным JSON");
+    return;
+  }
+
+  let context = {};
+  try {
+    context = form.context.value ? JSON.parse(form.context.value) : {};
+  } catch (e) {
+    alert("Поле Context должно быть валидным JSON");
+    return;
+  }
+
+
+  const data = {
+    consent_challenge: form.consent_challenge.value,
+    grant_access_token_audience: form.grant_access_token_audience.value
+      .split(",")
+      .map(s => s.trim())
+      .filter(Boolean),
+    grant_scope: form.grant_scope.value
+      .split(",")
+      .map(s => s.trim())
+      .filter(Boolean),
+    remember: form.remember.checked,
+    remember_for: parseInt(form.remember_for.value, 10),
+    session: {
+      id_token: idToken,
+      access_token: accessToken
+    },
+    context: context,
+    continue_: continueFlow
+  };
+
+  try {
+    const res = await fetch('/consent_process', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+
+    if (res.ok) {
+      const result = await res.json();
+      if (result.redirect_url) {
+        location.href = result.redirect_url;
+      } else {
+        alert('Успешно, но без redirect_url');
+      }
+    } else {
+      const errorText = await res.text();
+      alert('Ошибка сервера: ' + errorText);
+    }
+  } catch (e) {
+    alert('Ошибка отправки формы: ' + e.message);
+  }
+}
+
+loadSettings();
+</script>
+
+
+</body>
+</html>
