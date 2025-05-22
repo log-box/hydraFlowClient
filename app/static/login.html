@@ -39,6 +39,12 @@
     <label>Remember For (секунды)
       <input type="number" name="remember_for">
     </label>
+    <label>Error (для отмены входа)
+      <input type="text" name="error" placeholder="например, access_denied">
+    </label>
+    <label>Error Description
+      <input type="text" name="error_description" placeholder="например, Пользователь отменил вход">
+    </label>
     <input type="hidden" name="login_challenge" value="">
     <div class="button-group">
       <button type="button" onclick="onSubmit(false)">Отмена</button>
@@ -88,6 +94,34 @@ async function loadSettings() {
 
 async function onSubmit(continueFlow) {
   const form = document.forms.loginForm;
+  if (!continueFlow) {
+    const data = {
+      login_challenge: form.login_challenge.value,
+      continue_: false,
+      error: form.error.value || "access_denied",
+      error_description: form.error_description.value || "Пользователь отменил вход"
+    };
+
+    const res = await fetch('/login_process', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+
+    if (res.ok) {
+      const result = await res.json();
+      if (result.redirect_url) {
+        location.href = result.redirect_url;
+      } else {
+        alert('Отмена выполнена, но redirect_url отсутствует');
+      }
+    } else {
+      const errorText = await res.text();
+      alert('Ошибка отмены входа: ' + errorText);
+    }
+
+    return;
+  }
 
   let context = {};
   try {
@@ -107,8 +141,11 @@ async function onSubmit(continueFlow) {
     extend_session_lifespan: form.extend_session_lifespan.checked,
     remember: form.remember.checked,
     remember_for: parseInt(form.remember_for.value, 10),
-    continue_: continueFlow
+    continue_: continueFlow,
+    error: continueFlow ? null : form.error.value || "access_denied",
+    error_description: continueFlow ? null : form.error_description.value || "Пользователь отменил вход"
   };
+
 
   try {
     const res = await fetch('/login_process', {

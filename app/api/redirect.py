@@ -1,22 +1,45 @@
 import html
 import json
-import logging
+from typing import Optional
 from html import escape
 from urllib.parse import urlparse, parse_qs, urlencode
-
+from app.logger import logger
 import httpx
-from fastapi import HTTPException, APIRouter
+from fastapi import HTTPException, APIRouter, Request
 from fastapi.responses import HTMLResponse
 
 from app.config import settings
 
 router = APIRouter()
 
-logger = logging.getLogger("hydraApp")
-
-
 @router.get("/redirect-uri")
-async def redirect_uri_endpoint(code: str, scope: str, state: str):
+async def redirect_uri_endpoint(
+    code: Optional[str] = None,
+    scope: Optional[str] = None,
+    state: Optional[str] = None,
+    error: Optional[str] = None,
+    error_description: Optional[str] = None
+):
+    logger.info("Start /redirect-uri handler")
+
+    if error:
+        # Показываем пользователю ошибку, если вход отклонён
+        html_content = f"""
+        <html>
+            <head><meta charset="utf-8"><title>Ошибка входа</title></head>
+            <body>
+                <h2>Ошибка входа</h2>
+                <p><strong>{html.escape(error)}</strong>: {html.escape(error_description or '')}</p>
+                <a href="/">На главную</a>
+            </body>
+        </html>
+        """
+        return HTMLResponse(content=html_content)
+
+    if not code or not scope:
+        return HTMLResponse("<h1>Некорректный redirect: отсутствует code или scope</h1>", status_code=422)
+
+    # обычная логика с токеном
     token_request_data = {
         "grant_type": "authorization_code",
         "client_id": settings.CLIENT_ID.strip(),
@@ -96,7 +119,33 @@ async def redirect_uri_endpoint(code: str, scope: str, state: str):
 
 
 @router.get("/redirect-uri-second")
-async def redirect_uri_second_endpoint(code: str, scope: str, state: str):
+async def redirect_uri_second_endpoint(
+        code: Optional[str] = None,
+        scope: Optional[str] = None,
+        state: Optional[str] = None,
+        error: Optional[str] = None,
+        error_description: Optional[str] = None
+):
+    logger.info("Start /redirect-uri handler")
+    if error:
+        # Показываем пользователю ошибку, если вход отклонён
+        html_content = f"""
+                <html>
+                    <head><meta charset="utf-8"><title>Ошибка входа</title></head>
+                    <body>
+                        <h2>Ошибка входа</h2>
+                        <p><strong>{html.escape(error)}</strong>: {html.escape(error_description or '')}</p>
+                        <a href="/">На главную</a>
+                    </body>
+                </html>
+                """
+        return HTMLResponse(content=html_content, status_code=400)
+
+    if not code or not scope:
+        return HTMLResponse("<h1>Некорректный redirect: отсутствует code или scope</h1>", status_code=422)
+
+    # обычная логика с токеном
+    logger.info("Start /redirect-uri-second handler")
     token_request_data = {
         "grant_type": "authorization_code",
         "client_id": settings.CLIENT_ID_SECOND.strip(),

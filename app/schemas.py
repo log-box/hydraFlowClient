@@ -17,9 +17,17 @@ class ConsentSettingsData(BaseModel):
     session: ConsentSession
 
 
-class ConsentFormSubmitData(ConsentSettingsData):
+class ConsentFormSubmitData(BaseModel):
     consent_challenge: str
     continue_: bool
+    context: Optional[Dict[str, Any]] = None
+    grant_access_token_audience: Optional[List[str]] = None
+    grant_scope: Optional[List[str]] = None
+    remember: Optional[bool] = None
+    remember_for: Optional[int] = None
+    session: Optional[ConsentSession] = None
+    error: Optional[str] = None
+    error_description: Optional[str] = None
 
 
 class LoginSettingsData(BaseModel):
@@ -33,6 +41,16 @@ class LoginSettingsData(BaseModel):
     remember_for: int
 
 
-class LoginFormSubmitData(LoginSettingsData):
+class LoginFormSubmitData(BaseModel):
     login_challenge: str
     continue_: bool
+    subject: Optional[str] = None
+    credential: Optional[str] = None
+    acr: Optional[str] = None
+    amr: Optional[List[str]] = None
+    context: Optional[Dict[str, Any]] = None
+    extend_session_lifespan: Optional[bool] = None
+    remember: Optional[bool] = None
+    remember_for: Optional[int] = None
+    error: Optional[str] = None
+    error_description: Optional[str] = None

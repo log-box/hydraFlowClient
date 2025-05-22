@@ -1,18 +1,19 @@
 from app.config import settings
 from fastapi import HTTPException, APIRouter
 from fastapi.responses import FileResponse, JSONResponse
-import logging
 import httpx
+from app.logger import logger
 
 router = APIRouter()
-logger = logging.getLogger("hydraApp")
 @router.get("/logout")
 async def serve_logout_page():
+    logger.info("Start /logout handler")
     return FileResponse("app/static/logout.html")
 
 
 @router.get("/logout_process")
 async def logout_endpoint(logout_challenge: str):
+    logger.info("Start /logout_process handler")
     if not isinstance(logout_challenge, str):
         raise HTTPException(status_code=400, detail="logout_challenge must be a string")
     logger.info("Start /logout handler")

@@ -2,9 +2,10 @@ import httpx
 from fastapi import HTTPException
 from urllib.parse import urlparse, parse_qs
 from app.config import settings
-
+from app.logger import logger
 
 async def get_client_info_from_challenge(login_challenge: str) -> bool:
+    logger.info("Start /get_client_info_from_challenge handler")
     if not isinstance(login_challenge, str):
         raise HTTPException(status_code=400, detail="login_challenge must be a string")
 
@@ -41,6 +42,7 @@ async def get_client_info_from_challenge(login_challenge: str) -> bool:
 
 
 async def get_consent_info_from_challenge(consent_challenge: str) -> dict:
+    logger.info("Start /get_consent_info_from_challenge handler")
     url = f"{settings.HYDRA_PRIVATE_URL}/admin/oauth2/auth/requests/consent"
     async with httpx.AsyncClient() as client:
         response = await client.get(url, params={"consent_challenge": consent_challenge})

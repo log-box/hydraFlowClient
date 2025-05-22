@@ -4,11 +4,13 @@ from fastapi import HTTPException, APIRouter
 from fastapi.responses import FileResponse, JSONResponse
 from app.core.hydra import get_client_info_from_challenge
 import httpx
+from app.logger import logger
 
 router = APIRouter()
 
 @router.get("/login_settings", response_model=LoginSettingsData)
 async def get_login_settings():
+    logger.info("Start /login/settings handler")
     return LoginSettingsData(
         subject=settings.LOGIN_SUBJECT,
         credential=settings.LOGIN_CREDENTIAL,
@@ -23,13 +25,33 @@ async def get_login_settings():
 
 @router.get("/login")
 async def login_form_page():
+    logger.info("Start /login handler")
     return FileResponse("app/static/login.html")  # путь подстрой под себя
 
 
 @router.post("/login_process")
-async def login_endpoint(data: LoginFormSubmitData):
+async def login_process(data: LoginFormSubmitData):
     if not data.continue_:
-        return JSONResponse(status_code=501, content={"detail": "В запросе нет данных"})
+        response = await httpx.AsyncClient().put(
+            f"{settings.HYDRA_PRIVATE_URL}/admin/oauth2/auth/requests/login/reject?login_challenge={data.login_challenge}",
+            json={
+                "error": data.error or "access_denied",
+                "error_description": data.error_description or "Пользователь отменил вход",
+            }
+        )
+        logger.info(f"Redirect error: {data.error}, description: {data.error_description}")
+        return {"redirect_url": response.json()["redirect_to"]}
+
+    # Проверка обязательных полей вручную
+    missing = []
+    for field in ["subject", "credential", "acr", "amr", "extend_session_lifespan", "remember"]:
+        if getattr(data, field) is None:
+            missing.append(field)
+    if missing:
+        raise HTTPException(status_code=400, detail=f"Missing required fields: {', '.join(missing)}")
+
+
+
     await get_client_info_from_challenge(data.login_challenge)
     login_payload = {
         "subject": data.subject,
@@ -59,6 +81,7 @@ async def login_endpoint(data: LoginFormSubmitData):
 
 @router.get("/consent_settings", response_model=ConsentSettingsData)
 async def get_consent_settings():
+    logger.info("Start /consent_settings handler")
     return ConsentSettingsData(
         grant_access_token_audience=settings.GRANT_ACCESS_TOKEN_AUDIENCE,
         grant_scope=settings.GRANT_SCOPE,

@@ -1,7 +1,7 @@
 import httpx
 from fastapi import HTTPException, APIRouter
 from fastapi.responses import FileResponse, JSONResponse
-
+from app.logger import logger
 from app.config import settings
 from app.core.hydra import get_consent_info_from_challenge
 from app.schemas import ConsentFormSubmitData
@@ -11,14 +11,26 @@ router = APIRouter()
 
 @router.get("/consent")
 async def login_form_page():
+    logger.info("Start /consent handler")
     return FileResponse("app/static/consent.html")  # путь подстрой под себя
 
 
 @router.post("/consent_process")
 async def consent_endpoint(data: ConsentFormSubmitData):
+    logger.info("Start /consent_process handler")
     if not data.continue_:
-        return JSONResponse(status_code=501, content={"detail": "В запросе нет данных"})
-
+        reject_payload = {
+            "error": data.error or "access_denied",
+            "error_description": data.error_description or "Пользователь отказался от согласия",
+        }
+        async with httpx.AsyncClient() as client:
+            response = await client.put(
+                f"{settings.HYDRA_PRIVATE_URL}/admin/oauth2/auth/requests/consent/reject?consent_challenge={data.consent_challenge}",
+                json=reject_payload
+            )
+            response.raise_for_status()
+            redirect_url = response.json().get("redirect_to")
+            return JSONResponse(content={"redirect_url": redirect_url})
     await get_consent_info_from_challenge(data.consent_challenge)
 
     # Преобразуем Pydantic-модель в dict и добавим/переопределим поля
