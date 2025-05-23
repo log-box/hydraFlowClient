@@ -1,8 +1,11 @@
+from urllib.parse import urlparse, parse_qs
+
 import httpx
 from fastapi import HTTPException
-from urllib.parse import urlparse, parse_qs
+
 from app.config import settings
 from app.logger import logger
+
 
 async def get_client_info_from_challenge(login_challenge: str) -> bool:
     logger.info("Start /get_client_info_from_challenge handler")
@@ -16,7 +19,7 @@ async def get_client_info_from_challenge(login_challenge: str) -> bool:
             response = await client.get(url, params={"login_challenge": login_challenge})
             response.raise_for_status()
             data = response.json()
-
+        settings.LOGIN_REQUEST_DATA = data
         request_url = data.get("request_url")
         if not request_url:
             raise HTTPException(status_code=500, detail="Hydra response missing 'request_url'")

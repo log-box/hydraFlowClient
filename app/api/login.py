@@ -1,16 +1,19 @@
-from app.config import settings
-from app.schemas import LoginSettingsData, LoginFormSubmitData, ConsentSettingsData, ConsentSession
-from fastapi import HTTPException, APIRouter
-from fastapi.responses import FileResponse, JSONResponse
-from app.core.hydra import get_client_info_from_challenge
 import httpx
+from fastapi import HTTPException, APIRouter, Query
+from fastapi.responses import FileResponse, JSONResponse
+
+from app.config import settings
+from app.core.hydra import get_client_info_from_challenge
 from app.logger import logger
+from app.schemas import LoginSettingsData, LoginFormSubmitData, ConsentSettingsData, ConsentSession
 
 router = APIRouter()
 
+
 @router.get("/login_settings", response_model=LoginSettingsData)
-async def get_login_settings():
+async def get_login_settings(login_challenge: str = Query(...)):
     logger.info("Start /login/settings handler")
+    await get_client_info_from_challenge(login_challenge)
     return LoginSettingsData(
         subject=settings.LOGIN_SUBJECT,
         credential=settings.LOGIN_CREDENTIAL,
@@ -21,6 +24,12 @@ async def get_login_settings():
         remember=settings.REMEMBER,
         remember_for=settings.REMEMBER_FOR,
     )
+
+
+@router.get("/login_request_data")
+async def get_login_request_data():
+    logger.info("Start /login_request_data handler")
+    return settings.LOGIN_REQUEST_DATA
 
 
 @router.get("/login")
@@ -50,9 +59,7 @@ async def login_process(data: LoginFormSubmitData):
     if missing:
         raise HTTPException(status_code=400, detail=f"Missing required fields: {', '.join(missing)}")
 
-
-
-    await get_client_info_from_challenge(data.login_challenge)
+    # await get_client_info_from_challenge(data.login_challenge)
     login_payload = {
         "subject": data.subject,
         "acr": data.acr,
@@ -93,5 +100,3 @@ async def get_consent_settings():
         remember=settings.REMEMBER,
         remember_for=settings.REMEMBER_FOR,
     )
-
-
