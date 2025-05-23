@@ -86,17 +86,3 @@ async def login_process(data: LoginFormSubmitData):
         raise HTTPException(status_code=e.response.status_code, detail="Hydra login error")
 
 
-@router.get("/consent_settings", response_model=ConsentSettingsData)
-async def get_consent_settings():
-    logger.info("Start /consent_settings handler")
-    return ConsentSettingsData(
-        grant_access_token_audience=settings.GRANT_ACCESS_TOKEN_AUDIENCE,
-        grant_scope=settings.GRANT_SCOPE,
-        context=settings.CONSENT_CONTEXT,
-        session=ConsentSession(
-            id_token=settings.SESSION_ID_TOKEN,
-            access_token=settings.SESSION_ACCESS_TOKEN
-        ),
-        remember=settings.REMEMBER,
-        remember_for=settings.REMEMBER_FOR,
-    )

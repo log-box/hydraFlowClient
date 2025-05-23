@@ -30,6 +30,7 @@ class Settings:
     LOGIN_AMR = [s.strip() for s in os.getenv("LOGIN_AMR", "").split(",") if s.strip()]
     LOGIN_CONTEXT = json.loads(os.getenv("LOGIN_CONTEXT", "{}"))
     LOGIN_REQUEST_DATA = json.loads(os.getenv("LOGIN_REQUEST_DATA", "{}"))
+    CONSENT_REQUEST_DATA = json.loads(os.getenv("CONSENT_REQUEST_DATA", "{}"))
     EXTEND_SESSION_LIFESPAN = str2bool(os.getenv("EXTEND_SESSION_LIFESPAN", "true"))
     REMEMBER = str2bool(os.getenv("REMEMBER", "true"))
     REMEMBER_FOR = int(os.getenv("REMEMBER_FOR", "0"))

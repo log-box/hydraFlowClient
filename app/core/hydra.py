@@ -44,10 +44,12 @@ async def get_client_info_from_challenge(login_challenge: str) -> bool:
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
 
-async def get_consent_info_from_challenge(consent_challenge: str) -> dict:
+async def get_consent_info_from_challenge(consent_challenge: str) -> bool:
     logger.info("Start /get_consent_info_from_challenge handler")
     url = f"{settings.HYDRA_PRIVATE_URL}/admin/oauth2/auth/requests/consent"
     async with httpx.AsyncClient() as client:
         response = await client.get(url, params={"consent_challenge": consent_challenge})
         response.raise_for_status()
-        return response.json()
+        data = response.json()
+        settings.CONSENT_REQUEST_DATA = data
+        return True

@@ -1,19 +1,42 @@
 import httpx
-from fastapi import HTTPException, APIRouter
+from fastapi import HTTPException, APIRouter, Query
 from fastapi.responses import FileResponse, JSONResponse
 from app.logger import logger
 from app.config import settings
 from app.core.hydra import get_consent_info_from_challenge
-from app.schemas import ConsentFormSubmitData
+from app.schemas import ConsentFormSubmitData, ConsentSettingsData, ConsentSession
 
 router = APIRouter()
 
 
+
+@router.get("/consent_settings", response_model=ConsentSettingsData)
+async def get_consent_settings(consent_challenge: str = Query(...)):
+    logger.info("Start /consent_settings handler")
+    await get_consent_info_from_challenge(consent_challenge)
+    return ConsentSettingsData(
+        grant_access_token_audience=settings.GRANT_ACCESS_TOKEN_AUDIENCE,
+        grant_scope=settings.GRANT_SCOPE,
+        context=settings.CONSENT_CONTEXT,
+        session=ConsentSession(
+            id_token=settings.SESSION_ID_TOKEN,
+            access_token=settings.SESSION_ACCESS_TOKEN
+        ),
+        remember=settings.REMEMBER,
+        remember_for=settings.REMEMBER_FOR,
+    )
+
+
+@router.get("/consent_request_data")
+async def get_consent_request_data():
+    logger.info("Start /consent_request_data handler")
+    return settings.CONSENT_REQUEST_DATA
+
+
 @router.get("/consent")
-async def login_form_page():
+async def consent_form_page():
     logger.info("Start /consent handler")
     return FileResponse("app/static/consent.html")  # путь подстрой под себя
-
 
 @router.post("/consent_process")
 async def consent_endpoint(data: ConsentFormSubmitData):
@@ -31,8 +54,6 @@ async def consent_endpoint(data: ConsentFormSubmitData):
             response.raise_for_status()
             redirect_url = response.json().get("redirect_to")
             return JSONResponse(content={"redirect_url": redirect_url})
-    await get_consent_info_from_challenge(data.consent_challenge)
-
     # Преобразуем Pydantic-модель в dict и добавим/переопределим поля
     session_data = {
         "id_token": {
