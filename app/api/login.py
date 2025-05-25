@@ -5,7 +5,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from app.config import settings
 from app.core.hydra import get_client_info_from_challenge
 from app.logger import logger
-from app.schemas import LoginSettingsData, LoginFormSubmitData, ConsentSettingsData, ConsentSession
+from app.schemas import LoginSettingsData, LoginFormSubmitData
 
 router = APIRouter()
 
@@ -35,7 +35,7 @@ async def get_login_request_data():
 @router.get("/login")
 async def login_form_page():
     logger.info("Start /login handler")
-    return FileResponse("app/static/login.html")  # путь подстрой под себя
+    return FileResponse("app/static/login.html")
 
 
 @router.post("/login_process")
@@ -51,7 +51,6 @@ async def login_process(data: LoginFormSubmitData):
         logger.info(f"Redirect error: {data.error}, description: {data.error_description}")
         return {"redirect_url": response.json()["redirect_to"]}
 
-    # Проверка обязательных полей вручную
     missing = []
     for field in ["subject", "credential", "acr", "amr", "extend_session_lifespan", "remember"]:
         if getattr(data, field) is None:
@@ -59,7 +58,6 @@ async def login_process(data: LoginFormSubmitData):
     if missing:
         raise HTTPException(status_code=400, detail=f"Missing required fields: {', '.join(missing)}")
 
-    # await get_client_info_from_challenge(data.login_challenge)
     login_payload = {
         "subject": data.subject,
         "acr": data.acr,
@@ -81,7 +79,6 @@ async def login_process(data: LoginFormSubmitData):
             if not redirect_url:
                 raise HTTPException(status_code=500, detail="No redirect URL from Hydra")
             return JSONResponse(content={"redirect_url": redirect_url})
-            # return RedirectResponse(url=redirect_url, status_code=302)
     except httpx.HTTPStatusError as e:
         raise HTTPException(status_code=e.response.status_code, detail="Hydra login error")
 

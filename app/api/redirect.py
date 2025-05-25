@@ -1,29 +1,28 @@
 import html
 import json
+import base64
 from typing import Optional
-from html import escape
 from urllib.parse import urlparse, parse_qs, urlencode
-from app.logger import logger
+
 import httpx
 from fastapi import HTTPException, APIRouter, Request
 from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 
 from app.config import settings
+from app.core.token_payload import validate_jwt_with_jwks
+from app.logger import logger
 
 router = APIRouter()
+templates = Jinja2Templates(directory="app/templates")
 
-@router.get("/redirect-uri")
-async def redirect_uri_endpoint(
-    code: Optional[str] = None,
-    scope: Optional[str] = None,
-    state: Optional[str] = None,
-    error: Optional[str] = None,
-    error_description: Optional[str] = None
-):
+
+async def handle_redirect_uri(request: Request, code: Optional[str], scope: Optional[str], state: Optional[str],
+                              error: Optional[str], error_description: Optional[str],
+                              client_id: str, redirect_uri: str) -> HTMLResponse:
     logger.info("Start /redirect-uri handler")
 
     if error:
-        # Показываем пользователю ошибку, если вход отклонён
         html_content = f"""
         <html>
             <head><meta charset="utf-8"><title>Ошибка входа</title></head>
@@ -39,12 +38,11 @@ async def redirect_uri_endpoint(
     if not code or not scope:
         return HTMLResponse("<h1>Некорректный redirect: отсутствует code или scope</h1>", status_code=422)
 
-    # обычная логика с токеном
     token_request_data = {
         "grant_type": "authorization_code",
-        "client_id": settings.CLIENT_ID.strip(),
+        "client_id": client_id.strip(),
         "code": code.strip(),
-        "redirect_uri": settings.REDIRECT_URI.strip()
+        "redirect_uri": redirect_uri.strip()
     }
 
     try:
@@ -61,52 +59,40 @@ async def redirect_uri_endpoint(
                 "state": state
             }
             logout_uri = f"{settings.HYDRA_OUTSIDE_URL}/oauth2/sessions/logout?{urlencode(params)}"
-
+            id_token_payload = validate_jwt_with_jwks(id_token) if id_token else "access_token отсутствует"
+            access_token = token_data.get("access_token")
+            access_token_payload = validate_jwt_with_jwks(access_token) if access_token else "access_token отсутствует"
             pretty_json = html.escape(json.dumps(token_data, indent=4))
             parsed = urlparse(logout_uri)
             base_logout_url = f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
             query_params = parse_qs(parsed.query)
-
-            # Подставляем параметры
+            raw_payloads = []
+            for tok in (id_token, access_token):
+                if tok:
+                    raw_payloads.append(get_raw_payload(tok))
+            decoded_payload = "\n\n---\n\n".join(raw_payloads)
             id_token_hint = query_params.get("id_token_hint", [""])[0]
             post_logout_redirect_uri = query_params.get("post_logout_redirect_uri", [""])[0]
             state = query_params.get("state", [""])[0]
             logger.info(f"Сформирован logout_uri: {base_logout_url}")
-            html_content = f"""
-            <html>
-                <head>
-                    <meta charset="utf-8">
-                    <title>Token Info</title>
-                    <style>
-                        body {{ font-family: sans-serif; }}
-                        pre {{
-                            white-space: pre-wrap;
-                            word-wrap: break-word;
-                            background: #f0f0f0;
-                            padding: 1em;
-                            border-radius: 5px;
-                        }}
-                        button {{
-                            margin-top: 20px;
-                            padding: 0.5em 1em;
-                        }}
-                    </style>
-                </head>
-                <body>
-                    <h2>Ответ от Hydra</h2>
-                    <pre>{pretty_json}</pre>
-
-                <form action="{base_logout_url}" method="get">
-                    <input type="hidden" name="id_token_hint" value="{escape(id_token_hint)}">
-                    <input type="hidden" name="post_logout_redirect_uri" value="{escape(post_logout_redirect_uri)}">
-                    <input type="hidden" name="state" value="{escape(state)}">
-                    <button type="submit">Выйти!</button>
-                </form>
-                </body>
-            </html>
-            """
-            logger.info(f"Сформирован html_content: {html_content}")
-            return HTMLResponse(content=html_content)
+            return templates.TemplateResponse(
+                "redirect_result.html.jinja",
+                {
+                    "request": request,
+                    "token_data": json.dumps(token_data, indent=4),
+                    "id_token_payload": json.dumps(id_token_payload, indent=2) if isinstance(id_token_payload,
+                                                                                             dict) else id_token_payload,
+                    "access_token_payload": json.dumps(access_token_payload, indent=2) if isinstance(
+                        access_token_payload, dict) else access_token_payload,
+                    "logout_url": base_logout_url,
+                    "id_token_hint": id_token_hint,
+                    "post_logout_redirect_uri": post_logout_redirect_uri,
+                    "state": state,
+                    "decoded_payload": decoded_payload,
+                    "expires_in": token_data.get("expires_in", "—"),
+                    "hydra_url": settings.HYDRA_URL
+                }
+            )
     except httpx.HTTPStatusError as e:
         raise HTTPException(
             status_code=e.response.status_code,
@@ -118,83 +104,46 @@ async def redirect_uri_endpoint(
         )
 
 
-@router.get("/redirect-uri-second")
-async def redirect_uri_second_endpoint(
+@router.get("/redirect-uri")
+async def redirect_uri_endpoint(
+        request: Request,
         code: Optional[str] = None,
         scope: Optional[str] = None,
         state: Optional[str] = None,
         error: Optional[str] = None,
         error_description: Optional[str] = None
 ):
-    logger.info("Start /redirect-uri handler")
-    if error:
-        # Показываем пользователю ошибку, если вход отклонён
-        html_content = f"""
-                <html>
-                    <head><meta charset="utf-8"><title>Ошибка входа</title></head>
-                    <body>
-                        <h2>Ошибка входа</h2>
-                        <p><strong>{html.escape(error)}</strong>: {html.escape(error_description or '')}</p>
-                        <a href="/">На главную</a>
-                    </body>
-                </html>
-                """
-        return HTMLResponse(content=html_content, status_code=400)
+    return await handle_redirect_uri(
+        request, code, scope, state, error, error_description,
+        client_id=settings.CLIENT_ID,
+        redirect_uri=settings.REDIRECT_URI
+    )
 
-    if not code or not scope:
-        return HTMLResponse("<h1>Некорректный redirect: отсутствует code или scope</h1>", status_code=422)
 
-    # обычная логика с токеном
-    logger.info("Start /redirect-uri-second handler")
-    token_request_data = {
-        "grant_type": "authorization_code",
-        "client_id": settings.CLIENT_ID_SECOND.strip(),
-        "code": code.strip(),
-        "redirect_uri": settings.REDIRECT_URI_SECOND.strip()
-    }
+@router.get("/redirect-uri-second")
+async def redirect_uri_second_endpoint(
+        request: Request,
+        code: Optional[str] = None,
+        scope: Optional[str] = None,
+        state: Optional[str] = None,
+        error: Optional[str] = None,
+        error_description: Optional[str] = None
+):
+    return await handle_redirect_uri(
+        request, code, scope, state, error, error_description,
+        client_id=settings.CLIENT_ID,
+        redirect_uri=settings.REDIRECT_URI
+    )
+
+
+
+
+def get_raw_payload(token: str) -> str:
     try:
-        async with httpx.AsyncClient() as client:
-            response = await client.post(f"{settings.HYDRA_URL}/oauth2/token", data=token_request_data)
-            response.raise_for_status()
-            token_data = response.json()
-            pretty_json = html.escape(json.dumps(token_data, indent=4))
-            html_content = f"""
-            <html>
-                <head>
-                    <meta charset="utf-8">
-                    <title>Token Info</title>
-                    <style>
-                        body {{ font-family: sans-serif; }}
-                        pre {{
-                            white-space: pre-wrap;
-                            word-wrap: break-word;
-                            background: #f0f0f0;
-                            padding: 1em;
-                            border-radius: 5px;
-                        }}
-                        button {{
-                            margin-top: 20px;
-                            padding: 0.5em 1em;
-                        }}
-                    </style>
-                </head>
-                <body>
-                    <h2>Ответ от Hydra</h2>
-                    <pre>{pretty_json}</pre>
-
-                    <form action="{state}" method="get">
-                        <button type="submit">Перейти по state: {state}</button>
-                    </form>
-                </body>
-            </html>
-            """
-            return HTMLResponse(content=html_content)
-    except httpx.HTTPStatusError as e:
-        raise HTTPException(
-            status_code=e.response.status_code,
-            detail={
-                "error": "Token exchange failed",
-                "request_data": token_request_data,
-                "response_text": e.response.text
-            }
-        )
+        payload_part = token.split('.')[1]
+        # Добавляем padding если нужно
+        padded = payload_part + '=' * (-len(payload_part) % 4)
+        decoded_bytes = base64.urlsafe_b64decode(padded)
+        return decoded_bytes.decode('utf-8')
+    except Exception as e:
+        return f"Ошибка декодирования payload: {str(e)}"

@@ -4,6 +4,7 @@ import httpx
 from fastapi import HTTPException
 
 from app.config import settings
+from app.core.database import fetch_latest_flow_by_session_and_subject
 from app.logger import logger
 
 
@@ -21,6 +22,17 @@ async def get_client_info_from_challenge(login_challenge: str) -> bool:
             data = response.json()
         settings.LOGIN_REQUEST_DATA = data
         request_url = data.get("request_url")
+        subject = data.get("subject")
+        if subject:
+            settings.LOGIN_SUBJECT = subject
+            logger.debug(f"Hydra subject found: {subject}")
+            session_id = data.get("session_id")
+            session_info =  fetch_latest_flow_by_session_and_subject(session_id, subject)
+            logger.debug(f"Last active session info: {session_info}")
+            settings.LOGIN_CREDENTIAL = session_info.get("session_id_token", {}).get("login", "")
+            settings.LOGIN_ACR = session_info.get("acr", "")
+            settings.LOGIN_AMR = session_info.get("amr", [])
+            logger.debug(f"Last login: {settings.LOGIN_CREDENTIAL }, ACR: {settings.LOGIN_ACR}, AMR: {settings.LOGIN_AMR}")
         if not request_url:
             raise HTTPException(status_code=500, detail="Hydra response missing 'request_url'")
 
@@ -34,8 +46,8 @@ async def get_client_info_from_challenge(login_challenge: str) -> bool:
             raise HTTPException(status_code=500, detail="Missing client_id or redirect_uri in request_url")
 
         settings.CLIENT_ID = client_id
+        logger.info(f"client_id: {client_id}")
         settings.REDIRECT_URI = redirect_uri
-        settings.REDIRECT_URI_SECOND = redirect_uri
         return True
 
     except httpx.HTTPStatusError as e:

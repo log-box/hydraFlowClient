@@ -10,7 +10,7 @@ def str2bool(v: str) -> bool:
 class Settings:
     def __init__(self):
         missing = [name for name in [
-            "HYDRA_PRIVATE_URL", "CLIENT_ID", "REDIRECT_URI", "LOGIN_SUBJECT", "REDIRECT_URI"
+            "HYDRA_PRIVATE_URL", "HYDRA_URL", "HYDRA_OUTSIDE_URL"
         ] if not getattr(self, name)]
         if missing:
             raise RuntimeError(f"Missing required config variables: {', '.join(missing)}")
@@ -19,10 +19,8 @@ class Settings:
     HYDRA_URL = os.getenv("HYDRA_URL").strip()
     HYDRA_OUTSIDE_URL = os.getenv("HYDRA_OUTSIDE_URL").strip()
     CLIENT_ID = os.getenv("CLIENT_ID").strip()
-    CLIENT_ID_SECOND = os.getenv("CLIENT_ID_SECOND").strip()
-    CLIENT_SECRET = os.getenv("CLIENT_SECRET") # если нужен
+    CLIENT_SECRET = os.getenv("CLIENT_SECRET")
     REDIRECT_URI = os.getenv("REDIRECT_URI").strip()
-    REDIRECT_URI_SECOND = os.getenv("REDIRECT_URI_SECOND").strip()
     POST_LOGOUT_REDIRECT_URI = os.getenv("POST_LOGOUT_REDIRECT_URI").strip()
     LOGIN_SUBJECT = os.getenv("LOGIN_SUBJECT")
     LOGIN_CREDENTIAL = os.getenv("LOGIN_CREDENTIAL")
@@ -38,9 +36,13 @@ class Settings:
     CONSENT_CONTEXT = json.loads(os.getenv("CONSENT_CONTEXT", "{}"))
     GRANT_ACCESS_TOKEN_AUDIENCE = [s.strip() for s in os.getenv("GRANT_ACCESS_TOKEN_AUDIENCE", "").split(",") if
                                    s.strip()]
-    # GRANT_ACCESS_TOKEN_AUDIENCE = os.getenv("GRANT_ACCESS_TOKEN_AUDIENCE", "").split(",")
     GRANT_SCOPE = os.getenv("GRANT_SCOPE", "").split(",")
     SESSION_ID_TOKEN = json.loads(os.getenv("SESSION_ID_TOKEN", "{}"))
     SESSION_ACCESS_TOKEN = json.loads(os.getenv("SESSION_ACCESS_TOKEN", "{}"))
+    DB_HOST = os.getenv("DB_HOST")
+    DB_PORT = int(os.getenv("DB_PORT", "5432"))
+    DB_NAME = os.getenv("DB_NAME")
+    DB_USER = os.getenv("DB_USER")
+    DB_PASSWORD = os.getenv("DB_PASSWORD")
 
 settings = Settings()

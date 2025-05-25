@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Выдача согласия и кастомизация ID и Access токенов</title>
+  <title>Consent challenge stage</title>
   <style>
     body { font-family: sans-serif; max-width: 600px; margin: 40px auto; }
     label { display: block; margin-top: 1em; }
@@ -30,25 +30,25 @@
 <body>
   <h2>Выдача согласия и кастомизация ID и Access токенов</h2>
   <form id="consentForm">
-    <label>Куда разрешен доступ
+    <label>Список сервисов, которые будут доверять access token
       <input type="text" name="grant_access_token_audience">
     </label>
-    <label>Разрешенный scope
+    <label>Hydra выдаст Access токен с этими скопами
       <input type="text" name="grant_scope">
     </label>
-    <label>Сохранить consent сессию
+    <label>Сохранить согласие пользователя (consent сессию)
       <input type="checkbox" name="remember">
     </label>
-    <label>На сколько сохранить consent сессию (секунды). Значение 0 - без ограничения
+    <label>На сколько сохранить согласие (consent сессию). Значение 0 - без ограничения (секунды)
       <input type="number" name="remember_for">
     </label>
-    <label>Context
+    <label>Любые дополнительные данные, которые вы хотите сохранить и вернуть потом в introspection или в session
       <input type="text" name="context">
     </label>
-    <label>Клеймы ID token
+    <label>Кастомные клеймы, которые попадут в ID Token
       <input type="text" name="session.id_token">
     </label>
-    <label>Клеймы Access token
+    <label>Кастомные клеймы, которые попадут в Access Token, а также будут доступны через /userinfo и introspection
       <input type="text" name="session.access_token">
     </label>
     <label>Error (для отказа в согласии)
@@ -64,7 +64,7 @@
     </div>
 
     <details style="margin-top: 2em;">
-      <summary>Детали consent-запроса (техническое)</summary>
+      <summary>Детали get consentChallenge (техническое)</summary>
       <pre id="consentRequestJson"></pre>
     </details>
   </form>

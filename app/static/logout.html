@@ -38,7 +38,7 @@
         log("JSON ответ: " + JSON.stringify(data));
 
         if (data.redirect_to) {
-          log("Редиректим на: " + data.redirect_to);
+          log("Редирект на: " + data.redirect_to);
           window.location.href = data.redirect_to;
         } else {
           log("Ошибка: redirect_to отсутствует в ответе API.");

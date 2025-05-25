@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Результат авторизации</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        pre {
+            background: #f0f0f0;
+            padding: 1em;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .token-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .token-blocks {
+            display: flex;
+            gap: 20px;
+        }
+        .token-section {
+            flex: 1;
+        }
+        .token-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .status {
+            font-size: 1.5em;
+        }
+        .status.success { color: green; }
+        .status.fail { color: red; }
+        button.copy {
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Ответ от Hydra</h2>
+    <pre>{{ token_data }}</pre>
+
+    <div class="token-container">
+
+        <div class="token-blocks">
+
+            <div class="token-section">
+                <div class="token-header">
+                    <h3>ID Token Payload</h3>
+                    <span class="status {{ 'success' if id_token_payload.startswith('{') else 'fail' }}">●</span>
+                </div>
+                <button class="copy" onclick="copyToClipboard('id_token_raw')">Скопировать</button>
+                <pre id="id_token_raw">id_token_payload: {{ id_token_payload }}</pre>
+            </div>
+
+            <div class="token-section">
+                <div class="token-header">
+                    <h3>Access Token Payload</h3>
+                    <span class="status {{ 'success' if access_token_payload.startswith('{') else 'fail' }}">●</span>
+                </div>
+                <button class="copy" onclick="copyToClipboard('access_token_raw')">Скопировать</button>
+                <pre id="access_token_raw">{{ access_token_payload }}</pre>
+            </div>
+
+        </div>
+
+
+        <div>
+            <h3>Raw Payload (Base64 decode)</h3>
+            <pre>{{ decoded_payload }}</pre>
+        </div>
+
+        <form action="{{ logout_url }}" method="get">
+            <input type="hidden" name="id_token_hint" value="{{ id_token_hint }}">
+            <label>post_logout_redirect_uri:
+                <input type="text" name="post_logout_redirect_uri" value="{{ post_logout_redirect_uri }}">
+            </label>
+            <label>state:
+                <input type="text" name="state" value="{{ state }}">
+            </label>
+            <button type="submit">Выйти!</button>
+        </form>
+
+    </div>
+
+    <script>
+        function copyToClipboard(id) {
+            const text = document.getElementById(id).innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Скопировано!");
+            });
+        }
+    </script>
+</body>
+</html>

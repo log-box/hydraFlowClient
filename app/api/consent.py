@@ -26,7 +26,6 @@ async def get_consent_settings(consent_challenge: str = Query(...)):
         remember_for=settings.REMEMBER_FOR,
     )
 
-
 @router.get("/consent_request_data")
 async def get_consent_request_data():
     logger.info("Start /consent_request_data handler")
@@ -36,7 +35,7 @@ async def get_consent_request_data():
 @router.get("/consent")
 async def consent_form_page():
     logger.info("Start /consent handler")
-    return FileResponse("app/static/consent.html")  # путь подстрой под себя
+    return FileResponse("app/static/consent.html")
 
 @router.post("/consent_process")
 async def consent_endpoint(data: ConsentFormSubmitData):
@@ -58,12 +57,10 @@ async def consent_endpoint(data: ConsentFormSubmitData):
     session_data = {
         "id_token": {
             **(data.session.id_token or {}),
-            # "custom_claim": "value",
             "login": settings.LOGIN_CREDENTIAL,
         },
         "access_token": {
             **(data.session.access_token or {}),
-            # "identity_id": "111",
         }
     }
 
