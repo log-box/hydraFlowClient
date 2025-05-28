@@ -12,7 +12,7 @@ def validate_jwt_with_jwks(token: str) -> Union[dict, str]:
     try:
         # 1. Получение заголовка и payload без верификации
         headers = jwt.get_unverified_header(token)
-        unverified_payload = jwt.decode(token, options={"verify_signature": False, "verify_exp": False})
+        unverified_payload = jwt.decode(token, options={"verify_signature": False})
     except Exception as e:
         return f"Ошибка парсинга токена: {type(e).__name__} — {str(e)}"
 
@@ -40,7 +40,7 @@ def validate_jwt_with_jwks(token: str) -> Union[dict, str]:
             token,
             key=signing_key.key,
             algorithms=[headers["alg"]],
-            options={"verify_aud": False,"verify_exp": False},  # <== отключена проверка aud и времени жизни
+            options={"verify_aud": False},  # <== отключена проверка aud и времени жизни
         )
         return payload
     except ExpiredSignatureError:

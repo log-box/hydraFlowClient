@@ -50,19 +50,31 @@
             <div class="token-section">
                 <div class="token-header">
                     <h3>ID Token Payload</h3>
-                    <span class="status {{ 'success' if id_token_payload.startswith('{') else 'fail' }}">●</span>
+                    <span class="status {{ 'success' if id_token_validation_status == 'ok' else 'fail' }}">
+                        {{ '✔ Успешно' if id_token_validation_status == 'ok' else '✖ Ошибка валидации' }}
+                    </span>
                 </div>
                 <button class="copy" onclick="copyToClipboard('id_token_raw')">Скопировать</button>
                 <pre id="id_token_raw">id_token_payload: {{ id_token_payload }}</pre>
             </div>
 
             <div class="token-section">
-                <div class="token-header">
-                    <h3>Access Token Payload</h3>
-                    <span class="status {{ 'success' if access_token_payload.startswith('{') else 'fail' }}">●</span>
-                </div>
+                    <div class="token-header">
+                        <h3>Access Token Payload</h3>
+                        <span class="status {{ 'success' if access_token_validation_status == 'ok' else 'fail' }}">
+                            {{ '✔ Успешно' if access_token_validation_status == 'ok' else '✖ Ошибка валидации' }}
+                        </span>
+                    </div>
                 <button class="copy" onclick="copyToClipboard('access_token_raw')">Скопировать</button>
                 <pre id="access_token_raw">{{ access_token_payload }}</pre>
+            </div>
+
+            <div class="token-section">
+                <div class="token-header">
+                    <h3>Refresh Token</h3>
+                </div>
+                <button class="copy" onclick="copyToClipboard('refresh_token')">Скопировать</button>
+                <pre id="refresh_token">{{ refresh_token }}</pre>
             </div>
 
         </div>
@@ -73,16 +85,32 @@
             <pre>{{ decoded_payload }}</pre>
         </div>
 
-        <form action="{{ logout_url }}" method="get">
-            <input type="hidden" name="id_token_hint" value="{{ id_token_hint }}">
-            <label>post_logout_redirect_uri:
-                <input type="text" name="post_logout_redirect_uri" value="{{ post_logout_redirect_uri }}">
-            </label>
-            <label>state:
-                <input type="text" name="state" value="{{ state }}">
-            </label>
-            <button type="submit">Выйти!</button>
+        <form action="{{ logout_url }}" method="get" style="margin-top: 20px;">
+            <div style="display: flex; flex-direction: column; gap: 10px; max-width: 400px;">
+                <label>
+                    post_logout_redirect_uri:
+                    <input type="text" name="post_logout_redirect_uri" value="{{ post_logout_redirect_uri }}" style="width: 100%;">
+                    <input type="hidden" name="id_token_hint" value="{{ id_token_hint }}">
+                </label>
+                <label>
+                    state:
+                    <input type="text" name="state" value="{{ state }}" style="width: 100%;">
+                </label>
+                <button type="submit" style="
+                    margin-top: 15px;
+                    padding: 0.8em 1.2em;
+                    font-size: 1rem;
+                    background-color: #007BFF;
+                    color: white;
+                    border: none;
+                    border-radius: 5px;
+                    cursor: pointer;
+                ">
+                    Выйти!
+                </button>
+            </div>
         </form>
+
 
     </div>
 

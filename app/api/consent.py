@@ -17,13 +17,14 @@ async def get_consent_settings(consent_challenge: str = Query(...)):
     return ConsentSettingsData(
         grant_access_token_audience=settings.GRANT_ACCESS_TOKEN_AUDIENCE,
         grant_scope=settings.GRANT_SCOPE,
-        context=settings.CONSENT_CONTEXT,
+        context=settings.CONTEXT,
         session=ConsentSession(
             id_token=settings.SESSION_ID_TOKEN,
             access_token=settings.SESSION_ACCESS_TOKEN
         ),
         remember=settings.REMEMBER,
         remember_for=settings.REMEMBER_FOR,
+        active_session_info=settings.ACTIVE_SESSION_INFO or None
     )
 
 @router.get("/consent_request_data")

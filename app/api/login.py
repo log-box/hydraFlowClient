@@ -19,10 +19,11 @@ async def get_login_settings(login_challenge: str = Query(...)):
         credential=settings.LOGIN_CREDENTIAL,
         acr=settings.LOGIN_ACR,
         amr=settings.LOGIN_AMR,
-        context=settings.LOGIN_CONTEXT,
+        context=settings.CONTEXT,
         extend_session_lifespan=settings.EXTEND_SESSION_LIFESPAN,
         remember=settings.REMEMBER,
         remember_for=settings.REMEMBER_FOR,
+        active_session_info=settings.ACTIVE_SESSION_INFO or None
     )
 
 

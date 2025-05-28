@@ -17,6 +17,20 @@ router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
 
+def is_valid_payload(p: str | dict) -> str:
+    return "ok" if isinstance(p, dict) else "fail"
+
+def decode_payload_unsafe(token: str) -> str:
+    try:
+        parts = token.split('.')
+        if len(parts) != 3:
+            return "Неверный формат токена"
+        payload_b64 = parts[1] + '=' * (-len(parts[1]) % 4)
+        decoded_bytes = base64.urlsafe_b64decode(payload_b64)
+        return decoded_bytes.decode('utf-8')
+    except Exception as e:
+        return f"Ошибка при декодировании payload: {e}"
+
 async def handle_redirect_uri(request: Request, code: Optional[str], scope: Optional[str], state: Optional[str],
                               error: Optional[str], error_description: Optional[str],
                               client_id: str, redirect_uri: str) -> HTMLResponse:
@@ -61,8 +75,8 @@ async def handle_redirect_uri(request: Request, code: Optional[str], scope: Opti
             logout_uri = f"{settings.HYDRA_OUTSIDE_URL}/oauth2/sessions/logout?{urlencode(params)}"
             id_token_payload = validate_jwt_with_jwks(id_token) if id_token else "access_token отсутствует"
             access_token = token_data.get("access_token")
+            refresh_token = token_data.get("refresh_token")
             access_token_payload = validate_jwt_with_jwks(access_token) if access_token else "access_token отсутствует"
-            pretty_json = html.escape(json.dumps(token_data, indent=4))
             parsed = urlparse(logout_uri)
             base_logout_url = f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
             query_params = parse_qs(parsed.query)
@@ -75,6 +89,7 @@ async def handle_redirect_uri(request: Request, code: Optional[str], scope: Opti
             post_logout_redirect_uri = query_params.get("post_logout_redirect_uri", [""])[0]
             state = query_params.get("state", [""])[0]
             logger.info(f"Сформирован logout_uri: {base_logout_url}")
+
             return templates.TemplateResponse(
                 "redirect_result.html.jinja",
                 {
@@ -84,13 +99,16 @@ async def handle_redirect_uri(request: Request, code: Optional[str], scope: Opti
                                                                                              dict) else id_token_payload,
                     "access_token_payload": json.dumps(access_token_payload, indent=2) if isinstance(
                         access_token_payload, dict) else access_token_payload,
+                    "refresh_token": refresh_token,
                     "logout_url": base_logout_url,
                     "id_token_hint": id_token_hint,
                     "post_logout_redirect_uri": post_logout_redirect_uri,
                     "state": state,
                     "decoded_payload": decoded_payload,
                     "expires_in": token_data.get("expires_in", "—"),
-                    "hydra_url": settings.HYDRA_URL
+                    "hydra_url": settings.HYDRA_URL,
+                    "id_token_validation_status": is_valid_payload(id_token_payload),
+                    "access_token_validation_status": is_valid_payload(access_token_payload)
                 }
             )
     except httpx.HTTPStatusError as e:
@@ -141,7 +159,6 @@ async def redirect_uri_second_endpoint(
 def get_raw_payload(token: str) -> str:
     try:
         payload_part = token.split('.')[1]
-        # Добавляем padding если нужно
         padded = payload_part + '=' * (-len(payload_part) % 4)
         decoded_bytes = base64.urlsafe_b64decode(padded)
         return decoded_bytes.decode('utf-8')

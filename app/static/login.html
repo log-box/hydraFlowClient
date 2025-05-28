@@ -34,19 +34,19 @@
   <form id="loginForm">
 
     <label>Subject
-      <input type="text" name="subject">
+      <input type="text" name="subject" placeholder="user-uuid-1234">
     </label>
     <label>Credential
-      <input type="text" name="credential">
+      <input type="text" name="credential" placeholder="логин пользователя, например, +79200631679">
     </label>
     <label>ACR
-      <input type="text" name="acr">
+      <input type="text" name="acr" placeholder="Способ входа, например: login_password или OTP или OTP,login_password при 2FA">
     </label>
     <label>AMR
-      <input type="text" name="amr">
+      <input type="text" name="amr" placeholder="Сценарий аутентификации, например: OAUTH2,exchange или OAUTH2,smooth_transition">
     </label>
     <label>Context
-      <input type="text" name="context">
+      <input type="text" name="context" placeholder='{"app": "frontend", "env": "dev"} (валидный JSON-объект)"'>
     </label>
     <label>
       <input type="checkbox" name="extend_session_lifespan"> Extend session lifespan
@@ -55,10 +55,10 @@
       <input type="checkbox" name="remember"> Remember
     </label>
     <label>Remember For (секунды)
-      <input type="number" name="remember_for">
+      <input type="number" name="remember_for" placeholder="3600 (в секундах)">
     </label>
     <label>Error (для отмены входа)
-      <input type="text" name="error" placeholder="например, access_denied">
+      <input type="text" name="error" placeholder="например, login_required">
     </label>
     <label>Error Description
       <input type="text" name="error_description" placeholder="например, Пользователь отменил вход">
@@ -72,6 +72,10 @@
       <summary>Детали get loginChallenge (техническое)</summary>
       <pre id="loginRequestJson"></pre>
     </details>
+    <div id="activeSessionBlock" style="display: none; margin-top: 2em;">
+      <h3>⚡ Значения подгружены из активной сессии</h3>
+      <pre id="activeSessionInfoJson"></pre>
+    </div>
   </form>
 
 <script>
@@ -93,7 +97,13 @@ async function loadSettings() {
     // Основные данные формы
     const settingsRes = await fetch(`/login_settings?login_challenge=${challenge}`);
     const settingsData = await settingsRes.json();
-
+    // Проверка наличия сессионных данных
+    if (settingsData.active_session_info) {
+      document.getElementById("activeSessionBlock").style.display = "block";
+      document.getElementById("activeSessionInfoJson").textContent = JSON.stringify(
+        settingsData.active_session_info, null, 2
+      );
+    }
     // JSON login_request (только для отображения)
     const loginRequestRes = await fetch(`/login_request_data`);
     const loginRequestData = await loginRequestRes.json();
@@ -122,19 +132,6 @@ async function loadSettings() {
   }
 }
 
-
-
-async function loadLoginRequestData() {
-  try {
-    const res = await fetch('/login_request_data');
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    const data = await res.json();
-    const pretty = JSON.stringify(data, null, 2);
-    document.getElementById("loginRequestJson").textContent = pretty;
-  } catch (e) {
-    console.warn("Не удалось загрузить login_request_data:", e);
-  }
-}
 async function onSubmit(continueFlow) {
   const form = document.forms.loginForm;
   if (!continueFlow) {
@@ -166,13 +163,17 @@ async function onSubmit(continueFlow) {
     return;
   }
 
-  let context = {};
-  try {
-    context = form.context.value ? JSON.parse(form.context.value) : {};
-  } catch (e) {
-    alert("Поле context должно быть валидным JSON");
-    return;
-  }
+    let context = {};
+    try {
+      const raw = form.context.value.trim();
+      context = raw ? JSON.parse(raw) : {};
+      if (typeof context !== 'object' || Array.isArray(context) || context === null) {
+        throw new Error("context must be a JSON object");
+      }
+    } catch (e) {
+      alert('Ошибка в поле "context": ' + e.message);
+      return;
+    }
 
   const data = {
     login_challenge: form.login_challenge.value,

@@ -1,48 +1,78 @@
-import os
 import json
+import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
+
 def str2bool(v: str) -> bool:
     return v.lower() in ("true", "1", "yes")
 
+
 class Settings:
     def __init__(self):
-        missing = [name for name in [
-            "HYDRA_PRIVATE_URL", "HYDRA_URL", "HYDRA_OUTSIDE_URL"
-        ] if not getattr(self, name)]
-        if missing:
-            raise RuntimeError(f"Missing required config variables: {', '.join(missing)}")
+        # Обязательные параметры
+        self.HYDRA_PRIVATE_URL = self._required("HYDRA_PRIVATE_URL")
+        self.HYDRA_URL = self._required("HYDRA_URL")
+        self.HYDRA_OUTSIDE_URL = self._required("HYDRA_OUTSIDE_URL")
+        self.CLIENT_ID = self._required("CLIENT_ID")
+        self.LOG_LEVEL = self._required("LOG_LEVEL")
 
-    HYDRA_PRIVATE_URL = os.getenv("HYDRA_PRIVATE_URL").strip()
-    HYDRA_URL = os.getenv("HYDRA_URL").strip()
-    HYDRA_OUTSIDE_URL = os.getenv("HYDRA_OUTSIDE_URL").strip()
-    CLIENT_ID = os.getenv("CLIENT_ID").strip()
-    CLIENT_SECRET = os.getenv("CLIENT_SECRET")
-    REDIRECT_URI = os.getenv("REDIRECT_URI").strip()
-    POST_LOGOUT_REDIRECT_URI = os.getenv("POST_LOGOUT_REDIRECT_URI").strip()
-    LOGIN_SUBJECT = os.getenv("LOGIN_SUBJECT")
-    LOGIN_CREDENTIAL = os.getenv("LOGIN_CREDENTIAL")
-    LOGIN_ACR = os.getenv("LOGIN_ACR", "").strip()
-    LOGIN_AMR = [s.strip() for s in os.getenv("LOGIN_AMR", "").split(",") if s.strip()]
-    LOGIN_CONTEXT = json.loads(os.getenv("LOGIN_CONTEXT", "{}"))
-    LOGIN_REQUEST_DATA = json.loads(os.getenv("LOGIN_REQUEST_DATA", "{}"))
-    CONSENT_REQUEST_DATA = json.loads(os.getenv("CONSENT_REQUEST_DATA", "{}"))
-    EXTEND_SESSION_LIFESPAN = str2bool(os.getenv("EXTEND_SESSION_LIFESPAN", "true"))
-    REMEMBER = str2bool(os.getenv("REMEMBER", "true"))
-    REMEMBER_FOR = int(os.getenv("REMEMBER_FOR", "0"))
+        # Опциональные напрямую
+        self.CLIENT_SECRET = os.getenv("CLIENT_SECRET")
+        self.REDIRECT_URI = os.getenv("REDIRECT_URI", "").strip()
+        self.POST_LOGOUT_REDIRECT_URI = os.getenv("POST_LOGOUT_REDIRECT_URI", "").strip()
+        self.DB_HOST = os.getenv("DB_HOST")
+        self.DB_PORT = int(os.getenv("DB_PORT", "5432"))
+        self.DB_NAME = os.getenv("DB_NAME")
+        self.DB_USER = os.getenv("DB_USER")
+        self.DB_PASSWORD = os.getenv("DB_PASSWORD")
 
-    CONSENT_CONTEXT = json.loads(os.getenv("CONSENT_CONTEXT", "{}"))
-    GRANT_ACCESS_TOKEN_AUDIENCE = [s.strip() for s in os.getenv("GRANT_ACCESS_TOKEN_AUDIENCE", "").split(",") if
-                                   s.strip()]
-    GRANT_SCOPE = os.getenv("GRANT_SCOPE", "").split(",")
-    SESSION_ID_TOKEN = json.loads(os.getenv("SESSION_ID_TOKEN", "{}"))
-    SESSION_ACCESS_TOKEN = json.loads(os.getenv("SESSION_ACCESS_TOKEN", "{}"))
-    DB_HOST = os.getenv("DB_HOST")
-    DB_PORT = int(os.getenv("DB_PORT", "5432"))
-    DB_NAME = os.getenv("DB_NAME")
-    DB_USER = os.getenv("DB_USER")
-    DB_PASSWORD = os.getenv("DB_PASSWORD")
+        # Настройки по умолчанию
+        self.defaults = {
+            "ACTIVE_SESSION_INFO": {},
+            "ACTIVE_SESSION_ID":"",
+            "LOGIN_SUBJECT": "default-d60c-4256-88e2-ac39b7d3e2e6",
+            "LOGIN_CREDENTIAL": "DEFAULT",
+            "LOGIN_ACR": "DEFAULT",
+            "LOGIN_AMR": ["DEFAULT"],
+            "EXTEND_SESSION_LIFESPAN": True,
+            "REMEMBER": True,
+            "REMEMBER_FOR": 0,
+            "LOGIN_REQUEST_DATA": {},
+            "CONSENT_REQUEST_DATA": {},
+            "CONTEXT": {"DEFAULT": "DEFAULT"},
+            "GRANT_ACCESS_TOKEN_AUDIENCE": ["MAPIC"],
+            "GRANT_SCOPE": ["openid", "offline"],
+            "SESSION_ID_TOKEN": {"login": "DEFAULT"},
+            "SESSION_ACCESS_TOKEN": {"identity_id": "DEFAULT"}
+        }
+
+        for key, default in self.defaults.items():
+            raw = os.getenv(key)
+            if isinstance(default, bool):
+                value = str2bool(raw) if raw is not None else default
+            elif isinstance(default, int):
+                value = int(raw) if raw is not None else default
+            elif isinstance(default, list):
+                value = [s.strip() for s in raw.split(",")] if raw else default
+            elif isinstance(default, dict):
+                value = json.loads(raw) if raw else default
+            else:
+                value = raw.strip() if raw else default
+            setattr(self, key, value)
+
+    @staticmethod
+    def _required(key: str) -> str:
+        value = os.getenv(key)
+        if not value:
+            raise RuntimeError(f"Missing required config variable: {key}")
+        return value.strip()
+
+    def reset_settings(self):
+
+        for key, value in self.defaults.items():
+            setattr(self, key, value)
+
 
 settings = Settings()

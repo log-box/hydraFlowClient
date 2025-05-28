@@ -4,6 +4,7 @@ import httpx
 from fastapi import HTTPException
 
 from app.config import settings
+from app.core.context import load_session_info
 from app.core.database import fetch_latest_flow_by_session_and_subject
 from app.logger import logger
 
@@ -19,20 +20,21 @@ async def get_client_info_from_challenge(login_challenge: str) -> bool:
         async with httpx.AsyncClient() as client:
             response = await client.get(url, params={"login_challenge": login_challenge})
             response.raise_for_status()
-            data = response.json()
-        settings.LOGIN_REQUEST_DATA = data
-        request_url = data.get("request_url")
-        subject = data.get("subject")
+            login_request_data = response.json()
+        request_url = login_request_data.get("request_url")
+        subject = login_request_data.get("subject")
         if subject:
+            settings.reset_settings()
             settings.LOGIN_SUBJECT = subject
-            logger.debug(f"Hydra subject found: {subject}")
-            session_id = data.get("session_id")
-            session_info =  fetch_latest_flow_by_session_and_subject(session_id, subject)
-            logger.debug(f"Last active session info: {session_info}")
-            settings.LOGIN_CREDENTIAL = session_info.get("session_id_token", {}).get("login", "")
-            settings.LOGIN_ACR = session_info.get("acr", "")
-            settings.LOGIN_AMR = session_info.get("amr", [])
-            logger.debug(f"Last login: {settings.LOGIN_CREDENTIAL }, ACR: {settings.LOGIN_ACR}, AMR: {settings.LOGIN_AMR}")
+            settings.LOGIN_REQUEST_DATA = login_request_data
+            settings.ACTIVE_SESSION_ID = settings.LOGIN_REQUEST_DATA.get("session_id")
+            settings.ACTIVE_SESSION_INFO = fetch_latest_flow_by_session_and_subject(settings.ACTIVE_SESSION_ID , subject)
+            logger.info(f"settings.ACTIVE_SESSION_INFO {settings.ACTIVE_SESSION_INFO} ")
+            settings.GRANT_ACCESS_TOKEN_AUDIENCE = settings.LOGIN_REQUEST_DATA.get("requested_access_token_audience")
+            settings.GRANT_SCOPE = settings.LOGIN_REQUEST_DATA.get("requested_scope")
+            if settings.ACTIVE_SESSION_INFO:
+                load_session_info(settings.ACTIVE_SESSION_INFO)
+                logger.info(f"settings {settings} ")
         if not request_url:
             raise HTTPException(status_code=500, detail="Hydra response missing 'request_url'")
 
@@ -64,4 +66,5 @@ async def get_consent_info_from_challenge(consent_challenge: str) -> bool:
         response.raise_for_status()
         data = response.json()
         settings.CONSENT_REQUEST_DATA = data
+        logger.info(f"settings.CONSENT_REQUEST_DATA: {settings.CONSENT_REQUEST_DATA}")
         return True

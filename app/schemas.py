@@ -1,6 +1,6 @@
 from typing import List, Dict, Optional, Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ConsentSession(BaseModel):
@@ -9,12 +9,13 @@ class ConsentSession(BaseModel):
 
 
 class ConsentSettingsData(BaseModel):
-    context: Optional[Dict[str, Any]] = None
+    context: Any = Field(..., description="Raw JSON object")
     grant_access_token_audience: List[str]
     grant_scope: List[str]
     remember: bool
     remember_for: int
     session: ConsentSession
+    active_session_info: Optional[Dict[str, Any]] = None
 
 
 class ConsentFormSubmitData(BaseModel):
@@ -35,10 +36,11 @@ class LoginSettingsData(BaseModel):
     credential: str
     acr: str
     amr: List[str]
-    context: Optional[Dict[str, Any]] = None
+    context: Any = Field(..., description="Raw JSON object")
     extend_session_lifespan: bool
     remember: bool
     remember_for: int
+    active_session_info: Optional[Dict[str, Any]] = None
 
 
 class LoginFormSubmitData(BaseModel):

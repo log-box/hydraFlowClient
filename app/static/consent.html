@@ -31,25 +31,25 @@
   <h2>Выдача согласия и кастомизация ID и Access токенов</h2>
   <form id="consentForm">
     <label>Список сервисов, которые будут доверять access token
-      <input type="text" name="grant_access_token_audience">
+      <input type="text" name="grant_access_token_audience" placeholder='MAPIC, USSS (через запятую)'>
     </label>
     <label>Hydra выдаст Access токен с этими скопами
-      <input type="text" name="grant_scope">
+      <input type="text" name="grant_scope" placeholder='openid, offline, profile (через запятую)'>
     </label>
     <label>Сохранить согласие пользователя (consent сессию)
       <input type="checkbox" name="remember">
     </label>
     <label>На сколько сохранить согласие (consent сессию). Значение 0 - без ограничения (секунды)
-      <input type="number" name="remember_for">
+      <input type="number" name="remember_for" placeholder='3600 (в секундах; 0 = навсегда)'>
     </label>
     <label>Любые дополнительные данные, которые вы хотите сохранить и вернуть потом в introspection или в session
-      <input type="text" name="context">
+      <input type="text" name="context" placeholder='{"app": "frontend", "env": "dev"} (валидный JSON-объект)'>
     </label>
     <label>Кастомные клеймы, которые попадут в ID Token
-      <input type="text" name="session.id_token">
+      <input type="text" name="session.id_token" placeholder='{"login": "user123", "role": "admin"}'>
     </label>
     <label>Кастомные клеймы, которые попадут в Access Token, а также будут доступны через /userinfo и introspection
-      <input type="text" name="session.access_token">
+      <input type="text" name="session.access_token" placeholder='{"identity_id": "abc-123", "permissions": ["read", "write"]}'>
     </label>
     <label>Error (для отказа в согласии)
       <input type="text" name="error" placeholder="например, access_denied">
@@ -62,11 +62,15 @@
       <button type="button" onclick="onSubmit(false)">Отмена</button>
       <button type="button" onclick="onSubmit(true)">Далее</button>
     </div>
-
+    <div id="activeSessionBlock" style="display: none; margin-top: 2em;">
+      <h3>⚡ Значения подгружены из активной сессии</h3>
+      <pre id="activeSessionInfoJson"></pre>
+    </div>
     <details style="margin-top: 2em;">
       <summary>Детали get consentChallenge (техническое)</summary>
       <pre id="consentRequestJson"></pre>
     </details>
+
   </form>
 
 <script>
@@ -82,12 +86,18 @@ async function loadSettings() {
       alert("consent_challenge не указан");
       return;
     }
-
     // Основные настройки
     const settingsRes = await fetch(`/consent_settings?consent_challenge=${challenge}`);
     const settingsData = await settingsRes.json();
 
-    // JSON для отображения
+    if (settingsData.active_session_info) {
+      document.getElementById("activeSessionBlock").style.display = "block";
+      document.getElementById("activeSessionInfoJson").textContent = JSON.stringify(
+        settingsData.active_session_info, null, 2
+      );
+    }
+
+        // JSON для отображения
     const consentRequestRes = await fetch(`/consent_request_data`);
     const consentRequestData = await consentRequestRes.json();
     document.getElementById("consentRequestJson").textContent = JSON.stringify(consentRequestData, null, 2);
@@ -96,23 +106,39 @@ async function loadSettings() {
     form.consent_challenge.value = challenge;
 
     for (const key in settingsData) {
+      if (key === "session") {
+        if (settingsData.session?.id_token && form['session.id_token']) {
+          form['session.id_token'].value = JSON.stringify(settingsData.session.id_token, null, 2);
+        }
+        if (settingsData.session?.access_token && form['session.access_token']) {
+          form['session.access_token'].value = JSON.stringify(settingsData.session.access_token, null, 2);
+        }
+        continue;
+      }
+
       const el = form.elements[key];
       if (!el) continue;
 
       if (el.type === 'checkbox') {
         el.checked = Boolean(settingsData[key]);
       } else if (Array.isArray(settingsData[key])) {
-        el.value = settingsData[key].join(",");
+        el.value = settingsData[key].join(", ");
       } else if (typeof settingsData[key] === 'object' && settingsData[key] !== null) {
-        el.value = JSON.stringify(settingsData[key]);
+        el.value = JSON.stringify(settingsData[key], null, 2);
       } else {
         el.value = settingsData[key];
       }
     }
+
+
+
   } catch (e) {
     alert('Ошибка загрузки настроек: ' + e.message);
+    console.error(e);
   }
 }
+
+
 
 async function onSubmit(continueFlow) {
   const form = document.forms.consentForm;
@@ -123,27 +149,7 @@ async function onSubmit(continueFlow) {
       error: form.error.value || "access_denied",
       error_description: form.error_description.value || "Пользователь отказался предоставить согласие"
     };
-
-    const res = await fetch('/consent_process', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-
-    if (res.ok) {
-      const result = await res.json();
-      if (result.redirect_url) {
-        location.href = result.redirect_url;
-      } else {
-        alert('Отмена выполнена, но redirect_url отсутствует');
-      }
-    } else {
-      const errorText = await res.text();
-      alert('Ошибка отмены согласия: ' + errorText);
-    }
-    return;
-  }
-
+}
   let idToken = {}, accessToken = {}, context = {};
   try {
     idToken = form['session.id_token'].value ? JSON.parse(form['session.id_token'].value) : {};
@@ -157,8 +163,16 @@ async function onSubmit(continueFlow) {
   const data = {
     consent_challenge: form.consent_challenge.value,
     context: context,
-    grant_access_token_audience: form.grant_access_token_audience.value.split(',').map(s => s.trim()),
-    grant_scope: form.grant_scope.value.split(',').map(s => s.trim()),
+    grant_access_token_audience: form.grant_access_token_audience.value
+      .replace(/\s+/g, ',')
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean),
+    grant_scope: form.grant_scope.value
+      .replace(/\s+/g, ',')               // заменяем пробелы на запятые
+      .split(',')                          // разбиваем по запятым
+      .map(s => s.trim())                  // убираем лишние пробелы
+      .filter(Boolean),                    // убираем пустые строки
     remember: form.remember.checked,
     remember_for: parseInt(form.remember_for.value, 10),
     session: {
@@ -187,8 +201,8 @@ async function onSubmit(continueFlow) {
     const errorText = await res.text();
     alert('Ошибка сервера: ' + errorText);
   }
-}
 
+}
 loadSettings();
 </script>
 </body>
