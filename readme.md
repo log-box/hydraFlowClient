@@ -141,5 +141,3 @@ SESSION_ACCESS_TOKEN={"identity_id":"DEFAULT"}
   * тестов (`pytest`, `httpx`)
   * Helm-чарта для Kubernetes
   * миграций и seed-данных
-  * UI-индикации статуса токена (истёк/валиден)
-
