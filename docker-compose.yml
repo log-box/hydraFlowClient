@@ -40,14 +40,36 @@ services:
     restart: unless-stopped
 
   hydra-init:
-    image: curlimages/curl:latest
+    image: alpine:latest
     container_name: hydra-init
     depends_on:
       - hydra
+    user: root
     volumes:
       - ./init:/init
-    entrypoint: ["/bin/sh", "/init/init-hydra.sh"]
+    entrypoint: ["/bin/sh", "-c", "apk add --no-cache bash curl gettext && /init/init-hydra.sh"]
     restart: "no"
+    environment:
+#      CLIENT_ID: ${CLIENT_ID_COMPOSE}
+      REDIRECT_URI: ${REDIRECT_URI_COMPOSE}
+      ALLOWED_ORIGIN: ${ALLOWED_ORIGIN_COMPOSE}
+      HYDRA_ADMIN_URL: ${HYDRA_ADMIN_URL_COMPOSE}
+
+#  hydra-init:
+#    image: curlimages/curl:latest
+#    container_name: hydra-init
+#    depends_on:
+#      - hydra
+#    volumes:
+#      - ./init:/init
+#    entrypoint: ["/bin/sh", "/init/init-hydra.sh"]
+#    restart: "no"
+#    user: root
+#    environment:
+#      CLIENT_ID: hydra-flow-client-generated
+#      REDIRECT_URI: http://localhost:3000/redirect-uri
+#      ALLOWED_ORIGIN: http://localhost:3000
+#      HYDRA_ADMIN_URL: http://hydra:4445
 
   fastapi:
     build:

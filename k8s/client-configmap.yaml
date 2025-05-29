@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: client-config
+data:
+  HYDRA_URL: http://hydra:4444
+  HYDRA_PRIVATE_URL: http://hydra:4445
+  HYDRA_OUTSIDE_URL: http://hydra:4444
+  CLIENT_ID: hydra-flow-client
+  REDIRECT_URI: http://hydra-flow-client:3000/redirect-uri
+  POST_LOGOUT_REDIRECT_URI: http://hydra-flow-client:3000
+  LOGIN_SUBJECT: hydra-subject
+  LOGIN_CREDENTIAL: default
+  LOGIN_ACR: default
+  LOGIN_AMR: default
+  EXTEND_SESSION_LIFESPAN: "true"
+  REMEMBER: "true"
+  REMEMBER_FOR: "0"
+  GRANT_ACCESS_TOKEN_AUDIENCE: MAPIC
+  GRANT_SCOPE: openid,offline

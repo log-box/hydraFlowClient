@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hydra-flow-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hydra-flow-client
+  template:
+    metadata:
+      labels:
+        app: hydra-flow-client
+    spec:
+      containers:
+        - name: app
+          image: your-registry/hydra-flow-client:latest
+          ports:
+            - containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: client-config
+            - secretRef:
+                name: global-secrets

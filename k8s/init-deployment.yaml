@@ -1,0 +1,27 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: init-hydra-client
+spec:
+  template:
+    spec:
+      containers:
+        - name: init
+          image: curlimages/curl:latest
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Waiting for Hydra..."
+              until curl -s http://hydra:4445/health/ready | grep '"status":"ok"'; do sleep 2; done
+              curl -X POST http://hydra:4445/admin/clients \
+                   -H "Content-Type: application/json" \
+                   -d @/init/client.json
+          volumeMounts:
+            - name: init-volume
+              mountPath: /init
+      volumes:
+        - name: init-volume
+          configMap:
+            name: init-client-config
+      restartPolicy: OnFailure
