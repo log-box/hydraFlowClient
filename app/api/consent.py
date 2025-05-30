@@ -4,7 +4,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from app.logger import logger
 from app.config import settings
 from app.core.hydra import get_consent_info_from_challenge
-from app.schemas import ConsentFormSubmitData, ConsentSettingsData, ConsentSession
+from app.schemas import ConsentFormSubmitData, ConsentSettingsData, ConsentSession, ClientData
 
 router = APIRouter()
 
@@ -24,7 +24,8 @@ async def get_consent_settings(consent_challenge: str = Query(...)):
         ),
         remember=settings.REMEMBER,
         remember_for=settings.REMEMBER_FOR,
-        active_session_info=settings.ACTIVE_SESSION_INFO or None
+        active_session_info=settings.ACTIVE_SESSION_INFO or None,
+        client=ClientData(**settings.CONSENT_REQUEST_DATA.get("client", {}))
     )
 
 @router.get("/consent_request_data")

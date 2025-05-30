@@ -89,7 +89,8 @@ async def handle_redirect_uri(request: Request, code: Optional[str], scope: Opti
             post_logout_redirect_uri = query_params.get("post_logout_redirect_uri", [""])[0]
             state = query_params.get("state", [""])[0]
             logger.info(f"Сформирован logout_uri: {base_logout_url}")
-
+            post_logout_redirect_uris = settings.LOGIN_REQUEST_DATA.get("client", {}).get("post_logout_redirect_uris",
+                                                                                          [])
             return templates.TemplateResponse(
                 "redirect_result.html.jinja",
                 {
@@ -102,7 +103,8 @@ async def handle_redirect_uri(request: Request, code: Optional[str], scope: Opti
                     "refresh_token": refresh_token,
                     "logout_url": base_logout_url,
                     "id_token_hint": id_token_hint,
-                    "post_logout_redirect_uri": post_logout_redirect_uri,
+                    "post_logout_redirect_uri": post_logout_redirect_uri,  # выбранное
+                    "post_logout_redirect_uris": post_logout_redirect_uris,  # список
                     "state": state,
                     "decoded_payload": decoded_payload,
                     "expires_in": token_data.get("expires_in", "—"),

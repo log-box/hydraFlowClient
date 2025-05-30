@@ -8,6 +8,9 @@ class ConsentSession(BaseModel):
     access_token: Optional[Dict[str, Any]] = None
 
 
+class ClientData(BaseModel):
+    post_logout_redirect_uris: Optional[List[str]] = None
+
 class ConsentSettingsData(BaseModel):
     context: Any = Field(..., description="Raw JSON object")
     grant_access_token_audience: List[str]
@@ -16,6 +19,7 @@ class ConsentSettingsData(BaseModel):
     remember_for: int
     session: ConsentSession
     active_session_info: Optional[Dict[str, Any]] = None
+    client: ClientData
 
 
 class ConsentFormSubmitData(BaseModel):

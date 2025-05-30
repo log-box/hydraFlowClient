@@ -85,31 +85,41 @@
             <pre>{{ decoded_payload }}</pre>
         </div>
 
-        <form action="{{ logout_url }}" method="get" style="margin-top: 20px;">
-            <div style="display: flex; flex-direction: column; gap: 10px; max-width: 400px;">
-                <label>
-                    post_logout_redirect_uri:
-                    <input type="text" name="post_logout_redirect_uri" value="{{ post_logout_redirect_uri }}" style="width: 100%;">
-                    <input type="hidden" name="id_token_hint" value="{{ id_token_hint }}">
-                </label>
-                <label>
-                    state:
-                    <input type="text" name="state" value="{{ state }}" style="width: 100%;">
-                </label>
-                <button type="submit" style="
-                    margin-top: 15px;
-                    padding: 0.8em 1.2em;
-                    font-size: 1rem;
-                    background-color: #007BFF;
-                    color: white;
-                    border: none;
-                    border-radius: 5px;
-                    cursor: pointer;
-                ">
-                    Выйти!
-                </button>
-            </div>
-        </form>
+<form action="{{ logout_url }}" method="get" style="margin-top: 20px;">
+  <div style="display: flex; flex-direction: column; gap: 10px; max-width: 400px;">
+
+    <label>
+      post_logout_redirect_uri:
+      <select name="post_logout_redirect_uri" style="width: 100%;">
+        {% for uri in post_logout_redirect_uris %}
+          <option value="{{ uri }}" {% if uri == post_logout_redirect_uri %}selected{% endif %}>
+            {{ uri }}
+          </option>
+        {% endfor %}
+      </select>
+    </label>
+
+    <input type="hidden" name="id_token_hint" value="{{ id_token_hint }}">
+
+    <label>
+      state:
+      <input type="text" name="state" value="{{ state }}" style="width: 100%;">
+    </label>
+
+    <button type="submit" style="
+        margin-top: 15px;
+        padding: 0.8em 1.2em;
+        font-size: 1rem;
+        background-color: #007BFF;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    ">
+      Выйти!
+    </button>
+  </div>
+</form>
 
 
     </div>
