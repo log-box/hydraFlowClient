@@ -14,7 +14,7 @@ app.include_router(consent.router)
 app.include_router(redirect.router)
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
-
+logger.info("Starting hydraFlowClient app")
 
 @app.get("/")
 async def serve_form():

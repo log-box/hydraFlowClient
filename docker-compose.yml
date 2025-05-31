@@ -78,6 +78,8 @@ services:
     container_name: hydra-flow-client
     volumes:
       - ./app:/app/app
+      - ./logs:/app/logs
+
     working_dir: /app
     command: uvicorn app.main:app --host 0.0.0.0 --port 3000 --reload --log-level debug
     ports:

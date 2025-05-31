@@ -10,7 +10,7 @@ from app.logger import logger
 
 
 async def get_client_info_from_challenge(login_challenge: str) -> bool:
-    logger.info("Start /get_client_info_from_challenge handler")
+    logger.info("Fetching login request: %s", login_challenge)
     if not isinstance(login_challenge, str):
         raise HTTPException(status_code=400, detail="login_challenge must be a string")
 
@@ -34,8 +34,8 @@ async def get_client_info_from_challenge(login_challenge: str) -> bool:
             settings.GRANT_SCOPE = settings.LOGIN_REQUEST_DATA.get("requested_scope")
             if settings.ACTIVE_SESSION_INFO:
                 load_session_info(settings.ACTIVE_SESSION_INFO)
-                logger.info(f"settings {settings} ")
         if not request_url:
+            logger.error("Hydra response missing 'request_url': %s", request_url)
             raise HTTPException(status_code=500, detail="Hydra response missing 'request_url'")
 
         parsed = urlparse(request_url)

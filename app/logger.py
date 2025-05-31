@@ -1,5 +1,6 @@
 import logging
 import os
+from logging.handlers import RotatingFileHandler
 
 logger = logging.getLogger("hydraApp")
 log_level = os.getenv("LOG_LEVEL", "INFO").upper()
@@ -13,3 +14,8 @@ if not logger.handlers:
     )
     handler.setFormatter(formatter)
     logger.addHandler(handler)
+    # Файл
+    log_path = os.getenv("LOG_PATH", "app/logs/hydra_app.log")
+    file_handler = RotatingFileHandler(log_path, maxBytes=5 * 1024 * 1024, backupCount=3)
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
