@@ -203,6 +203,24 @@ async function onSubmit(continueFlow) {
   }
 
 }
+function validateJsonInput(input) {
+  const value = input.value.trim();
+  if (!value) return true;
+  try {
+    const parsed = JSON.parse(value);
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+      throw new Error("Ожидается JSON-объект");
+    }
+    input.style.border = "";
+    input.title = "";
+    return true;
+  } catch (e) {
+    input.style.border = "2px solid red";
+    input.title = "Ошибка JSON: " + e.message;
+    return false;
+  }
+}
+
 loadSettings();
 </script>
 </body>

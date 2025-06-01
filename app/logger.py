@@ -2,20 +2,30 @@ import logging
 import os
 from logging.handlers import RotatingFileHandler
 
+from app.config import settings
+
+# Создание каталога, если его нет
+os.makedirs(os.path.dirname(settings.LOG_PATH), exist_ok=True)
+
+# Инициализация логгера
 logger = logging.getLogger("hydraApp")
-log_level = os.getenv("LOG_LEVEL", "INFO").upper()
-logger.setLevel(getattr(logging, log_level, logging.INFO))
+logger.setLevel(getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO))
 logger.propagate = False
 
 if not logger.handlers:
-    handler = logging.StreamHandler()
+    # Консоль
+    stream_handler = logging.StreamHandler()
     formatter = logging.Formatter(
         "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
     )
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
+    stream_handler.setFormatter(formatter)
+    logger.addHandler(stream_handler)
+
     # Файл
-    log_path = os.getenv("LOG_PATH", "app/logs/hydra_app.log")
-    file_handler = RotatingFileHandler(log_path, maxBytes=5 * 1024 * 1024, backupCount=3)
+    file_handler = RotatingFileHandler(
+        settings.LOG_PATH,
+        maxBytes=5 * 1024 * 1024,
+        backupCount=3
+    )
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)

@@ -17,7 +17,7 @@ class Settings:
         self.HYDRA_OUTSIDE_URL = self._required("HYDRA_OUTSIDE_URL")
         self.CLIENT_ID = self._required("CLIENT_ID")
         self.LOG_LEVEL = self._required("LOG_LEVEL")
-
+        self.LOG_PATH = self._required("LOG_PATH")
         # Опциональные напрямую
         self.CLIENT_SECRET = os.getenv("CLIENT_SECRET")
         self.REDIRECT_URI = os.getenv("REDIRECT_URI", "").strip()

@@ -40,36 +40,33 @@ services:
     restart: unless-stopped
 
   hydra-init:
-    image: alpine:latest
+    image: python:3.11-alpine
     container_name: hydra-init
     depends_on:
       - hydra
     user: root
     volumes:
       - ./init:/init
-    entrypoint: ["/bin/sh", "-c", "apk add --no-cache bash curl gettext && /init/init-hydra.sh"]
-    restart: "no"
+      - ./init/.env:/init/.env
+      - ./app:/app
+    working_dir: /init
+    entrypoint: >
+      sh -c "
+        apk add --no-cache curl &&
+        until curl -s http://hydra:4445/health/ready | grep '\"status\":\"ok\"'; do
+          echo 'Ожидание Hydra...'; sleep 1;
+        done &&
+        python createClients.py
+      "
     environment:
-#      CLIENT_ID: ${CLIENT_ID_COMPOSE}
-      REDIRECT_URI: ${REDIRECT_URI_COMPOSE}
-      ALLOWED_ORIGIN: ${ALLOWED_ORIGIN_COMPOSE}
-      HYDRA_ADMIN_URL: ${HYDRA_ADMIN_URL_COMPOSE}
+      - HYDRA_ADMIN_URL=${HYDRA_ADMIN_URL}
+      - REDIRECT_URI=${REDIRECT_URI}
+      - REDIRECT_URIS=${REDIRECT_URIS}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+      - LOG_PATH=${LOG_PATH}
+      - LOG_LEVEL=${LOG_LEVEL}
+    restart: "no"
 
-#  hydra-init:
-#    image: curlimages/curl:latest
-#    container_name: hydra-init
-#    depends_on:
-#      - hydra
-#    volumes:
-#      - ./init:/init
-#    entrypoint: ["/bin/sh", "/init/init-hydra.sh"]
-#    restart: "no"
-#    user: root
-#    environment:
-#      CLIENT_ID: hydra-flow-client-generated
-#      REDIRECT_URI: http://localhost:3000/redirect-uri
-#      ALLOWED_ORIGIN: http://localhost:3000
-#      HYDRA_ADMIN_URL: http://hydra:4445
 
   fastapi:
     build:

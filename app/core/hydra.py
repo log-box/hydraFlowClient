@@ -21,14 +21,17 @@ async def get_client_info_from_challenge(login_challenge: str) -> bool:
             response = await client.get(url, params={"login_challenge": login_challenge})
             response.raise_for_status()
             login_request_data = response.json()
+            logger.info("`login_request_data': %s", login_request_data)
         request_url = login_request_data.get("request_url")
         subject = login_request_data.get("subject")
+        logger.info(
+            f"subject: {subject}\n session_id: {login_request_data.get('session_id')}")
         if subject:
             settings.reset_settings()
             settings.LOGIN_SUBJECT = subject
             settings.LOGIN_REQUEST_DATA = login_request_data
             settings.ACTIVE_SESSION_ID = settings.LOGIN_REQUEST_DATA.get("session_id")
-            settings.ACTIVE_SESSION_INFO = fetch_latest_flow_by_session_and_subject(settings.ACTIVE_SESSION_ID , subject)
+            settings.ACTIVE_SESSION_INFO = fetch_latest_flow_by_session_and_subject(settings.ACTIVE_SESSION_ID, subject)
             logger.info(f"settings.ACTIVE_SESSION_INFO {settings.ACTIVE_SESSION_INFO} ")
             settings.GRANT_ACCESS_TOKEN_AUDIENCE = settings.LOGIN_REQUEST_DATA.get("requested_access_token_audience")
             settings.GRANT_SCOPE = settings.LOGIN_REQUEST_DATA.get("requested_scope")

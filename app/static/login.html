@@ -166,6 +166,11 @@ async function onSubmit(continueFlow) {
     let context = {};
     try {
       const raw = form.context.value.trim();
+       if (!validateJsonInput(form['context'])) {
+      alert("Ошибка: поле context заполнено некорректно.");
+      return;
+      }
+
       context = raw ? JSON.parse(raw) : {};
       if (typeof context !== 'object' || Array.isArray(context) || context === null) {
         throw new Error("context must be a JSON object");
@@ -211,6 +216,23 @@ async function onSubmit(continueFlow) {
     }
   } catch (e) {
     alert('Ошибка отправки формы: ' + e.message);
+  }
+}
+function validateJsonInput(input) {
+  const value = input.value.trim();
+  if (!value) return true;
+  try {
+    const parsed = JSON.parse(value);
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+      throw new Error("Ожидается JSON-объект");
+    }
+    input.style.border = "";
+    input.title = "";
+    return true;
+  } catch (e) {
+    input.style.border = "2px solid red";
+    input.title = "Ошибка JSON: " + e.message;
+    return false;
   }
 }
 
