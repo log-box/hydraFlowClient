@@ -1,2 +1,4 @@
 /.venv/
 .idea/
+/logs/hydra_app.log
+/logs/init_clients.log
