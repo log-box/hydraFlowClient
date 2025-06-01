@@ -83,6 +83,7 @@ async def consent_endpoint(data: ConsentFormSubmitData):
             )
             response.raise_for_status()
             redirect_url = response.json().get("redirect_to")
+            logger.info(f"consent/accept=response: {response}")
             if not redirect_url:
                 raise HTTPException(status_code=500, detail="No redirect URL received from Hydra")
             return JSONResponse(content={"redirect_url": redirect_url})

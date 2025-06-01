@@ -41,6 +41,7 @@ async def login_form_page():
 
 @router.post("/login_process")
 async def login_process(data: LoginFormSubmitData):
+    logger.info("Start /login_process handler")
     if not data.continue_:
         response = await httpx.AsyncClient().put(
             f"{settings.HYDRA_PRIVATE_URL}/admin/oauth2/auth/requests/login/reject?login_challenge={data.login_challenge}",
@@ -77,6 +78,7 @@ async def login_process(data: LoginFormSubmitData):
             )
             response.raise_for_status()
             redirect_url = response.json().get("redirect_to")
+            logger.info(f"login/accept=response: {response}")
             if not redirect_url:
                 raise HTTPException(status_code=500, detail="No redirect URL from Hydra")
             return JSONResponse(content={"redirect_url": redirect_url})

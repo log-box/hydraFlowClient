@@ -58,7 +58,7 @@ async def handle_redirect_uri(request: Request, code: Optional[str], scope: Opti
         "code": code.strip(),
         "redirect_uri": redirect_uri.strip()
     }
-
+    logger.info("`token_request_data': %s", token_request_data)
     try:
         async with httpx.AsyncClient() as client:
             response = await client.post(f"{settings.HYDRA_URL}/oauth2/token", data=token_request_data)
@@ -133,6 +133,7 @@ async def redirect_uri_endpoint(
         error: Optional[str] = None,
         error_description: Optional[str] = None
 ):
+    logger.info(f"CLIENT_ID: {settings.CLIENT_ID}")
     return await handle_redirect_uri(
         request, code, scope, state, error, error_description,
         client_id=settings.CLIENT_ID,
@@ -149,6 +150,7 @@ async def redirect_uri_second_endpoint(
         error: Optional[str] = None,
         error_description: Optional[str] = None
 ):
+    logger.info(f"CLIENT_ID: {settings.CLIENT_ID}")
     return await handle_redirect_uri(
         request, code, scope, state, error, error_description,
         client_id=settings.CLIENT_ID,

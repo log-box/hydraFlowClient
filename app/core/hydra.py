@@ -25,7 +25,7 @@ async def get_client_info_from_challenge(login_challenge: str) -> bool:
         request_url = login_request_data.get("request_url")
         subject = login_request_data.get("subject")
         logger.info(
-            f"subject: {subject}\n session_id: {login_request_data.get('session_id')}")
+            f"subject: {subject}; session_id: {login_request_data.get('session_id')}")
         if subject:
             settings.reset_settings()
             settings.LOGIN_SUBJECT = subject
@@ -51,7 +51,7 @@ async def get_client_info_from_challenge(login_challenge: str) -> bool:
             raise HTTPException(status_code=500, detail="Missing client_id or redirect_uri in request_url")
 
         settings.CLIENT_ID = client_id
-        logger.info(f"client_id: {client_id}")
+        logger.info(f"LOGIN_REQUEST_DATA: {settings.LOGIN_REQUEST_DATA}")
         settings.REDIRECT_URI = redirect_uri
         return True
 
@@ -62,12 +62,12 @@ async def get_client_info_from_challenge(login_challenge: str) -> bool:
 
 
 async def get_consent_info_from_challenge(consent_challenge: str) -> bool:
-    logger.info("Start /get_consent_info_from_challenge handler")
+    logger.info("Fetching consent request: %s", consent_challenge)
     url = f"{settings.HYDRA_PRIVATE_URL}/admin/oauth2/auth/requests/consent"
     async with httpx.AsyncClient() as client:
         response = await client.get(url, params={"consent_challenge": consent_challenge})
         response.raise_for_status()
         data = response.json()
         settings.CONSENT_REQUEST_DATA = data
-        logger.info(f"settings.CONSENT_REQUEST_DATA: {settings.CONSENT_REQUEST_DATA}")
+        logger.info(f"CONSENT_REQUEST_DATA: {settings.CONSENT_REQUEST_DATA}")
         return True
