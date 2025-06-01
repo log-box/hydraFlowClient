@@ -51,6 +51,7 @@ async def get_client_info_from_challenge(login_challenge: str) -> bool:
             raise HTTPException(status_code=500, detail="Missing client_id or redirect_uri in request_url")
 
         settings.CLIENT_ID = client_id
+        settings.LOGIN_REQUEST_DATA = login_request_data
         logger.info(f"LOGIN_REQUEST_DATA: {settings.LOGIN_REQUEST_DATA}")
         settings.REDIRECT_URI = redirect_uri
         return True
