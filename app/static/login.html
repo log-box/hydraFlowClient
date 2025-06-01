@@ -46,7 +46,8 @@
       <input type="text" name="amr" placeholder="Сценарий аутентификации, например: OAUTH2,exchange или OAUTH2,smooth_transition">
     </label>
     <label>Context
-      <input type="text" name="context" placeholder='{"app": "frontend", "env": "dev"} (валидный JSON-объект)"'>
+        <input type="text" name="context" placeholder='{"app": "frontend", "env": "dev"} (валидный JSON-объект)"' data-json data-json-object>
+
     </label>
     <label>
       <input type="checkbox" name="extend_session_lifespan"> Extend session lifespan
@@ -127,6 +128,14 @@ async function loadSettings() {
         el.value = settingsData[key];
       }
     }
+
+        document.querySelectorAll("input[data-json]").forEach(input => {
+      input.addEventListener("input", () => {
+        const mustBeObject = input.hasAttribute("data-json-object");
+        validateJsonField(input, mustBeObject);
+      });
+    });
+
   } catch (e) {
     alert('Ошибка загрузки настроек: ' + e.message);
   }
@@ -134,6 +143,11 @@ async function loadSettings() {
 
 async function onSubmit(continueFlow) {
   const form = document.forms.loginForm;
+  if (!validateAllJsonFields()) {
+  alert("Проверьте корректность JSON в выделенных полях");
+  return;
+}
+
   if (!continueFlow) {
     const data = {
       login_challenge: form.login_challenge.value,
@@ -234,6 +248,42 @@ function validateJsonInput(input) {
     input.title = "Ошибка JSON: " + e.message;
     return false;
   }
+}
+function validateJsonField(input, mustBeObject = false) {
+  const value = input.value.trim();
+  if (!value) {
+    input.style.border = "";
+    input.title = "";
+    return true;
+  }
+  try {
+    const parsed = JSON.parse(value);
+
+    if (mustBeObject && (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed))) {
+      throw new Error("Ожидается JSON-объект (не массив)");
+    }
+
+    input.style.border = "";
+    input.title = "";
+    return true;
+  } catch (e) {
+    input.style.border = "2px solid red";
+    input.title = "Ошибка JSON: " + e.message;
+    return false;
+  }
+}
+
+function validateAllJsonFields() {
+  const jsonInputs = document.querySelectorAll("input[data-json]");
+  let allValid = true;
+
+  jsonInputs.forEach(input => {
+    const mustBeObject = input.hasAttribute("data-json-object");
+    const valid = validateJsonField(input, mustBeObject);
+    if (!valid) allValid = false;
+  });
+
+  return allValid;
 }
 
 loadSettings();

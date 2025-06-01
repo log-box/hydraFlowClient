@@ -43,13 +43,13 @@
       <input type="number" name="remember_for" placeholder='3600 (в секундах; 0 = навсегда)'>
     </label>
     <label>Любые дополнительные данные, которые вы хотите сохранить и вернуть потом в introspection или в session
-      <input type="text" name="context" placeholder='{"app": "frontend", "env": "dev"} (валидный JSON-объект)'>
+      <input type="text" name="context" placeholder='{"app": "frontend", "env": "dev"} (валидный JSON-объект)' data-json data-json-object>
     </label>
     <label>Кастомные клеймы, которые попадут в ID Token
-      <input type="text" name="session.id_token" placeholder='{"login": "user123", "role": "admin"}'>
+      <input type="text" name="session.id_token" placeholder='{"login": "user123", "role": "admin"} (валидный JSON-объект)' data-json data-json-object>
     </label>
     <label>Кастомные клеймы, которые попадут в Access Token, а также будут доступны через /userinfo и introspection
-      <input type="text" name="session.access_token" placeholder='{"identity_id": "abc-123", "permissions": ["read", "write"]}'>
+      <input type="text" name="session.access_token" placeholder='{"identity_id": "abc-123", "permissions": ["read", "write"]} (валидный JSON-объект)' data-json data-json-object>
     </label>
     <label>Error (для отказа в согласии)
       <input type="text" name="error" placeholder="например, access_denied">
@@ -130,7 +130,12 @@ async function loadSettings() {
       }
     }
 
-
+    document.querySelectorAll("input[data-json]").forEach(input => {
+      input.addEventListener("input", () => {
+        const mustBeObject = input.hasAttribute("data-json-object");
+        validateJsonField(input, mustBeObject);
+      });
+    });
 
   } catch (e) {
     alert('Ошибка загрузки настроек: ' + e.message);
@@ -142,6 +147,10 @@ async function loadSettings() {
 
 async function onSubmit(continueFlow) {
   const form = document.forms.consentForm;
+    if (!validateAllJsonFields()) {
+  alert("Проверьте корректность JSON в выделенных полях");
+  return;
+}
   if (!continueFlow) {
     const data = {
       consent_challenge: form.consent_challenge.value,
@@ -220,7 +229,42 @@ function validateJsonInput(input) {
     return false;
   }
 }
+function validateJsonField(input, mustBeObject = false) {
+  const value = input.value.trim();
+  if (!value) {
+    input.style.border = "";
+    input.title = "";
+    return true;
+  }
+  try {
+    const parsed = JSON.parse(value);
 
+    if (mustBeObject && (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed))) {
+      throw new Error("Ожидается JSON-объект (не массив)");
+    }
+
+    input.style.border = "";
+    input.title = "";
+    return true;
+  } catch (e) {
+    input.style.border = "2px solid red";
+    input.title = "Ошибка JSON: " + e.message;
+    return false;
+  }
+}
+
+function validateAllJsonFields() {
+  const jsonInputs = document.querySelectorAll("input[data-json]");
+  let allValid = true;
+
+  jsonInputs.forEach(input => {
+    const mustBeObject = input.hasAttribute("data-json-object");
+    const valid = validateJsonField(input, mustBeObject);
+    if (!valid) allValid = false;
+  });
+
+  return allValid;
+}
 loadSettings();
 </script>
 </body>
