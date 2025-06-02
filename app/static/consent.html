@@ -201,11 +201,12 @@ async function onSubmit(continueFlow) {
 
   if (res.ok) {
     const result = await res.json();
-    if (result.redirect_url) {
-      location.href = result.redirect_url;
-    } else {
-      alert('Успешно, но без redirect_url');
-    }
+if (result.redirect_url) {
+  redirectWithHostRewrite(result.redirect_url);
+} else {
+  alert('Успешно, но без redirect_url');
+}
+
   } else {
     const errorText = await res.text();
     alert('Ошибка сервера: ' + errorText);
@@ -265,6 +266,23 @@ function validateAllJsonFields() {
 
   return allValid;
 }
+function redirectWithHostRewrite(originalUrl) {
+  const correctedPath = originalUrl.replace("http://localhost:4444/", "");
+
+  const currentHost = window.location.hostname;
+  let baseUrl;
+
+  if (currentHost === "192.168.88.5") {
+    baseUrl = "http://192.168.88.5:3001/";
+  } else if (currentHost === "logbox.myddns.me") {
+    baseUrl = "http://logbox.myddns.me:3001/";
+  } else {
+    baseUrl = "http://logbox.myddns.me:3001/";
+  }
+
+  location.href = baseUrl + correctedPath;
+}
+
 loadSettings();
 </script>
 </body>

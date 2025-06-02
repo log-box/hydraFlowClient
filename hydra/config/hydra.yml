@@ -20,6 +20,11 @@ urls:
   login: http://localhost:3000/login
   consent: http://localhost:3000/consent
   logout: http://localhost:3000/logout
+#  self:
+#    issuer: http://logbox.myddns.me:4444
+#  login: http://logbox.myddns:3000/login
+#  consent: http://logbox.myddns:3000/consent
+#  logout: http://logbox.myddns:3000/logout
 
 secrets:
   system:

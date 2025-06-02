@@ -14,6 +14,23 @@
       el.textContent += msg + '\n';
     }
 
+    function redirectWithHostRewrite(originalUrl) {
+      const correctedPath = originalUrl.replace("http://localhost:4444/", "");
+
+      const currentHost = window.location.hostname;
+      let baseUrl;
+
+      if (currentHost === "192.168.88.5") {
+        baseUrl = "http://192.168.88.5:3001/";
+      } else if (currentHost === "logbox.myddns.me") {
+        baseUrl = "http://logbox.myddns.me:3001/";
+      } else {
+        baseUrl = "http://logbox.myddns.me:3001/";
+      }
+
+      location.href = baseUrl + correctedPath;
+    }
+
     window.onload = async () => {
       log("=== Logout Flow Started ===");
 
@@ -22,8 +39,7 @@
       log("Parsed logout_challenge: " + challenge);
 
       if (!challenge) {
-        const err = "Ошибка: отсутствует logout_challenge в URL";
-        log(err);
+        log("Ошибка: отсутствует logout_challenge в URL");
         return;
       }
 
@@ -39,7 +55,8 @@
 
         if (data.redirect_to) {
           log("Редирект на: " + data.redirect_to);
-          window.location.href = data.redirect_to;
+          redirectWithHostRewrite(data.redirect_to);
+          // window.location.href = data.redirect_to; // Альтернатива, если не нужна замена host
         } else {
           log("Ошибка: redirect_to отсутствует в ответе API.");
         }

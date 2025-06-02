@@ -132,5 +132,25 @@
             });
         }
     </script>
+    <script>
+function rewriteLogoutAction() {
+  const form = document.querySelector('form');
+  if (!form || !form.action.includes('localhost:4444')) return;
+
+  const correctedPath = form.action.replace('http://localhost:4444/', '');
+
+  const currentHost = window.location.hostname;
+  let baseUrl;
+
+  if (currentHost === "192.168.88.5") {
+    baseUrl = "http://192.168.88.5:3001/";
+  } else {
+    baseUrl = "http://logbox.myddns.me:3001/";
+  }
+
+  form.action = baseUrl + correctedPath;
+}
+window.onload = rewriteLogoutAction;
+</script>
 </body>
 </html>

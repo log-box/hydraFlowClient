@@ -70,6 +70,8 @@ async def login_process(data: LoginFormSubmitData):
         "remember_for": data.remember_for
     }
     settings.LOGIN_CREDENTIAL = data.credential
+    logger.info(f"login_payload: {login_payload}")
+    logger.info(f"data: {data}")
     try:
         async with httpx.AsyncClient() as client:
             response = await client.put(
@@ -79,6 +81,7 @@ async def login_process(data: LoginFormSubmitData):
             response.raise_for_status()
             redirect_url = response.json().get("redirect_to")
             logger.info(f"login/accept=response: {response}")
+            logger.info(f"redirect_url: {redirect_url}")
             if not redirect_url:
                 raise HTTPException(status_code=500, detail="No redirect URL from Hydra")
             return JSONResponse(content={"redirect_url": redirect_url})

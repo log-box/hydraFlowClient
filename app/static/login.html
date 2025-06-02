@@ -165,7 +165,7 @@ async function onSubmit(continueFlow) {
     if (res.ok) {
       const result = await res.json();
       if (result.redirect_url) {
-        location.href = result.redirect_url;
+         redirectToFixedUrl(result.redirect_url);
       } else {
         alert('Отмена выполнена, но redirect_url отсутствует');
       }
@@ -220,7 +220,7 @@ async function onSubmit(continueFlow) {
     if (res.ok) {
       const result = await res.json();
       if (result.redirect_url) {
-        location.href = result.redirect_url;
+        redirectToFixedUrl(result.redirect_url);
       } else {
         alert('Успешно, но без redirect_url');
       }
@@ -284,6 +284,23 @@ function validateAllJsonFields() {
   });
 
   return allValid;
+}
+function redirectToFixedUrl(rawUrl) {
+  const correctedPath = rawUrl.replace("http://localhost:4444/", "");
+
+  const currentHost = window.location.hostname;
+  let baseUrl;
+
+  if (currentHost === "192.168.88.5") {
+    baseUrl = "http://192.168.88.5:3001/";
+  } else if (currentHost === "logbox.myddns.me") {
+    baseUrl = "http://logbox.myddns.me:3001/";
+  } else {
+    baseUrl = "http://logbox.myddns.me:3001/";
+  }
+
+  const correctedUrl = baseUrl + correctedPath;
+  location.href = correctedUrl;
 }
 
 loadSettings();

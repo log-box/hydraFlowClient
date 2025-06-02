@@ -112,8 +112,20 @@
         client_id, redirect_uri, scope, state, nonce, response_type
       });
 
-      const url = `http://localhost:4444/oauth2/auth?${query.toString()}`;
-      window.location.href = url;
+<!--      const url = `http://localhost:4444/oauth2/auth?${query.toString()}`;-->
+<!--      const url = `http://logbox.myddns.me:4444/oauth2/auth?${query.toString()}`;-->
+<!--      const hydraPort = 3001;-->
+<!--      const baseHydraUrl = `${window.location.protocol}//${window.location.hostname}:${hydraPort}/oauth2/auth`;-->
+    let hydraPort;
+    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+        hydraPort = 4444;  // локальный доступ
+    } else {
+        hydraPort = 3001;  // внешний через nginx
+    }
+
+    const baseHydraUrl = `${window.location.protocol}//${window.location.hostname}:${hydraPort}/oauth2/auth?${query.toString()}`;
+<!--      window.location.href = urlurl;-->
+      window.location.href = baseHydraUrl;
     });
 
     loadClients();
