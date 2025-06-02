@@ -90,3 +90,12 @@ docker compose up --build
 ```
 http://localhost:3000
 ```
+
+---
+
+## ЗАТЕСТИТЬ ФУНКЦИОНАЛЬНОСТЬ
+
+Сервис сконфигурирован по адресу http://logbox.myddns.me:3001
+
+
+В файле `nginx/etc/nginx/conf.d/hydra-flow.conf` указана настройка Nginx для проксирования запросов с http://logbox.myddns.me:3001 на localhost
