@@ -142,12 +142,14 @@ function rewriteLogoutAction() {
   const currentHost = window.location.hostname;
   let baseUrl;
 
+
   if (currentHost === "192.168.88.5") {
     baseUrl = "http://192.168.88.5:3001/";
-  } else {
+  } else if (currentHost === "logbox.myddns.me") {
     baseUrl = "http://logbox.myddns.me:3001/";
+  } else {
+    baseUrl = "http://localhost:4444/";
   }
-
   form.action = baseUrl + correctedPath;
 }
 window.onload = rewriteLogoutAction;
