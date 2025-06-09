@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import json
+import logging
 import os
 import random
 import string
 import urllib.error
 import urllib.parse
 import urllib.request
-import logging
 from logging.handlers import RotatingFileHandler
 
 # ---------- ЛОГГЕР ----------
@@ -32,6 +32,7 @@ if not logger.handlers:
     logger.addHandler(fh)
 
 logger.propagate = False  # чтобы не дублировались логи
+
 
 # ---------- УТИЛИТЫ ----------
 
@@ -88,6 +89,7 @@ def post_json_with_redirect(url, data, headers, max_redirects=5):
 def parse_list_env(varname):
     return [s.strip() for s in os.environ.get(varname, "").split(",") if s.strip()]
 
+
 # ---------- ОСНОВНОЙ КОД ----------
 
 def main():
@@ -142,6 +144,7 @@ def main():
         result = post_json_with_redirect(f"{admin_url}/admin/clients", data, headers)
         if result:
             logger.info("Зарегистрирован клиент %s для scope: %s", client_name, scope)
+
 
 # ---------- ТОЧКА ВХОДА ----------
 if __name__ == '__main__':
