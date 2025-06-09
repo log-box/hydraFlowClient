@@ -3,3 +3,4 @@
 /logs/hydra_app.log
 /logs/init_clients.log
 /init/logs/init_clients.log
+/init/logs/hydra_app.log

@@ -157,6 +157,7 @@
 
       if (!continueFlow) {
         const data = {
+          session_id: form.session_id.value,
           login_challenge: form.login_challenge.value,
           continue_: false,
           error: form.error.value || "access_denied",

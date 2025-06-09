@@ -25,7 +25,7 @@ class ConsentSettingsData(BaseModel):
 
 
 class ConsentFormSubmitData(BaseModel):
-    session_id: str
+    session_id: str = None
     consent_challenge: str
     continue_: bool
     context: Optional[Dict[str, Any]] = None
@@ -52,7 +52,7 @@ class LoginSettingsData(BaseModel):
 
 
 class LoginFormSubmitData(BaseModel):
-    session_id: str
+    session_id: str = None
     login_challenge: str
     continue_: bool
     subject: Optional[str] = None
