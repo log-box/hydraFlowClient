@@ -1,43 +1,63 @@
 import httpx
 from fastapi import HTTPException, APIRouter, Query
 from fastapi.responses import FileResponse, JSONResponse
-from app.logger import logger
+
 from app.config import settings
-from app.core.hydra import get_consent_info_from_challenge
+from app.core.context_storage import get_context, get_session_context
+from app.logger import logger
 from app.schemas import ConsentFormSubmitData, ConsentSettingsData, ConsentSession, ClientData
 
 router = APIRouter()
 
 
-
 @router.get("/consent_settings", response_model=ConsentSettingsData)
 async def get_consent_settings(consent_challenge: str = Query(...)):
     logger.info("Start /consent_settings handler")
-    await get_consent_info_from_challenge(consent_challenge)
+    url = f"{settings.HYDRA_PRIVATE_URL}/admin/oauth2/auth/requests/consent"
+
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url, params={"consent_challenge": consent_challenge})
+            response.raise_for_status()
+            data = response.json()
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=e.response.status_code, detail="Hydra consent request failed")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+    login_session_id = data.get("login_session_id")
+    context = get_context(login_session_id)
+    if context is None:
+        raise HTTPException(status_code=503,
+                            detail=f"Login session not found on consent step.Consent challenge data:{data}")
+    context.CONSENT_REQUEST_DATA = data
     return ConsentSettingsData(
-        grant_access_token_audience=settings.GRANT_ACCESS_TOKEN_AUDIENCE,
-        grant_scope=settings.GRANT_SCOPE,
-        context=settings.CONTEXT,
+        session_id=context.ACTIVE_SESSION_ID,
+        grant_access_token_audience=context.GRANT_ACCESS_TOKEN_AUDIENCE,
+        grant_scope=context.GRANT_SCOPE,
+        context=context.CONTEXT,
         session=ConsentSession(
-            id_token=settings.SESSION_ID_TOKEN,
-            access_token=settings.SESSION_ACCESS_TOKEN
+            id_token=context.SESSION_ID_TOKEN,
+            access_token=context.SESSION_ACCESS_TOKEN
         ),
-        remember=settings.REMEMBER,
-        remember_for=settings.REMEMBER_FOR,
-        active_session_info=settings.ACTIVE_SESSION_INFO or None,
-        client=ClientData(**settings.CONSENT_REQUEST_DATA.get("client", {}))
+        remember=context.REMEMBER,
+        remember_for=context.REMEMBER_FOR,
+        active_session_info=context.ACTIVE_SESSION_INFO or None,
+        client=ClientData(**context.CONSENT_REQUEST_DATA.get("client", {}))
     )
 
+
 @router.get("/consent_request_data")
-async def get_consent_request_data():
+async def get_consent_request_data(session_id: str = Query(...)):
     logger.info("Start /consent_request_data handler")
-    return settings.CONSENT_REQUEST_DATA
+    context = get_session_context(session_id)
+    return context.CONSENT_REQUEST_DATA
 
 
 @router.get("/consent")
 async def consent_form_page():
     logger.info("Start /consent handler")
     return FileResponse("app/static/consent.html")
+
 
 @router.post("/consent_process")
 async def consent_endpoint(data: ConsentFormSubmitData):
@@ -56,10 +76,11 @@ async def consent_endpoint(data: ConsentFormSubmitData):
             redirect_url = response.json().get("redirect_to")
             return JSONResponse(content={"redirect_url": redirect_url})
     # Преобразуем Pydantic-модель в dict и добавим/переопределим поля
+    context = get_session_context(data.session_id)
     session_data = {
         "id_token": {
             **(data.session.id_token or {}),
-            "login": settings.LOGIN_CREDENTIAL,
+            "login": context.LOGIN_CREDENTIAL,
         },
         "access_token": {
             **(data.session.access_token or {}),

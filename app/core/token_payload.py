@@ -1,6 +1,8 @@
 from typing import Union
+
 import jwt
 from jwt import PyJWKClient, ExpiredSignatureError, InvalidTokenError
+
 from app.config import settings
 
 

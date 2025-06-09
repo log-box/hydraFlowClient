@@ -1,289 +1,295 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>Consent challenge stage</title>
-  <style>
-    body { font-family: sans-serif; max-width: 600px; margin: 40px auto; }
-    label { display: block; margin-top: 1em; }
-    input[type="text"], input[type="number"] { width: 100%; padding: 8px; }
-    .button-group { margin-top: 2em; display: flex; justify-content: flex-end; gap: 1em; }
-    button { padding: 10px 20px; }
-    summary {
-      font-weight: bold;
-      cursor: pointer;
-    }
+    <meta charset="UTF-8">
+    <title>Consent challenge stage</title>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: 40px auto; }
+        label { display: block; margin-top: 1em; }
+        input[type="text"], input[type="number"] { width: 100%; padding: 8px; }
+        .button-group { margin-top: 2em; display: flex; justify-content: flex-end; gap: 1em; }
+        button { padding: 10px 20px; }
+        summary {
+          font-weight: bold;
+          cursor: pointer;
+        }
 
-    details pre {
-      margin: 0;
-      white-space: pre-wrap;
-      word-break: break-word;
-      background: #f0f0f0;
-      padding: 1em;
-      border-radius: 5px;
-      max-height: 400px;
-      overflow: auto;
-      font-size: 0.85em;
-    }
-  </style>
+        details pre {
+          margin: 0;
+          white-space: pre-wrap;
+          word-break: break-word;
+          background: #f0f0f0;
+          padding: 1em;
+          border-radius: 5px;
+          max-height: 400px;
+          overflow: auto;
+          font-size: 0.85em;
+        }
+    </style>
 </head>
 <body>
-  <h2>Выдача согласия и кастомизация ID и Access токенов</h2>
-  <form id="consentForm">
+<h2>Выдача согласия и кастомизация ID и Access токенов</h2>
+<form id="consentForm">
     <label>Список сервисов, которые будут доверять access token
-      <input type="text" name="grant_access_token_audience" placeholder='MAPIC, USSS (через запятую)'>
+        <input name="grant_access_token_audience" placeholder='MAPIC, USSS (через запятую)' type="text">
     </label>
     <label>Hydra выдаст Access токен с этими скопами
-      <input type="text" name="grant_scope" placeholder='openid, offline, profile (через запятую)'>
+        <input name="grant_scope" placeholder='openid, offline, profile (через запятую)' type="text">
     </label>
     <label>Сохранить согласие пользователя (consent сессию)
-      <input type="checkbox" name="remember">
+        <input name="remember" type="checkbox">
     </label>
     <label>На сколько сохранить согласие (consent сессию). Значение 0 - без ограничения (секунды)
-      <input type="number" name="remember_for" placeholder='3600 (в секундах; 0 = навсегда)'>
+        <input name="remember_for" placeholder='3600 (в секундах; 0 = навсегда)' type="number">
     </label>
     <label>Любые дополнительные данные, которые вы хотите сохранить и вернуть потом в introspection или в session
-      <input type="text" name="context" placeholder='{"app": "frontend", "env": "dev"} (валидный JSON-объект)' data-json data-json-object>
+        <input data-json data-json-object name="context"
+               placeholder='{"app": "frontend", "env": "dev"} (валидный JSON-объект)' type="text">
     </label>
     <label>Кастомные клеймы, которые попадут в ID Token
-      <input type="text" name="session.id_token" placeholder='{"login": "user123", "role": "admin"} (валидный JSON-объект)' data-json data-json-object>
+        <input data-json data-json-object
+               name="session.id_token" placeholder='{"login": "user123", "role": "admin"} (валидный JSON-объект)' type="text">
     </label>
     <label>Кастомные клеймы, которые попадут в Access Token, а также будут доступны через /userinfo и introspection
-      <input type="text" name="session.access_token" placeholder='{"identity_id": "abc-123", "permissions": ["read", "write"]} (валидный JSON-объект)' data-json data-json-object>
+        <input data-json data-json-object
+               name="session.access_token"
+               placeholder='{"identity_id": "abc-123", "permissions": ["read", "write"]} (валидный JSON-объект)' type="text">
     </label>
     <label>Error (для отказа в согласии)
-      <input type="text" name="error" placeholder="например, access_denied">
+        <input name="error" placeholder="например, access_denied" type="text">
     </label>
     <label>Error Description
-      <input type="text" name="error_description" placeholder="например, Пользователь отказался от согласия">
+        <input name="error_description" placeholder="например, Пользователь отказался от согласия" type="text">
     </label>
-    <input type="hidden" name="consent_challenge" value="">
+    <input name="consent_challenge" type="hidden" value="">
     <div class="button-group">
-      <button type="button" onclick="onSubmit(false)">Отмена</button>
-      <button type="button" onclick="onSubmit(true)">Далее</button>
+        <button onclick="onSubmit(false)" type="button">Отмена</button>
+        <button onclick="onSubmit(true)" type="button">Далее</button>
     </div>
-    <div id="activeSessionBlock" style="display: none; margin-top: 2em;">
-      <h3>⚡ Значения подгружены из активной сессии</h3>
-      <pre id="activeSessionInfoJson"></pre>
-    </div>
-    <details style="margin-top: 2em;">
-      <summary>Детали get consentChallenge (техническое)</summary>
-      <pre id="consentRequestJson"></pre>
-    </details>
 
-  </form>
+    <details style="margin-top: 2em;">
+        <summary>Детали get consentChallenge (техническое)</summary>
+        <pre id="consentRequestJson"></pre>
+    </details>
+    <div id="activeSessionBlock" style="display: none; margin-top: 2em;">
+        <h3>⚡ Значения подгружены из активной сессии</h3>
+        <pre id="activeSessionInfoJson"></pre>
+    </div>
+    <input name="session_id" type="hidden" value="">
+</form>
 
 <script>
-function getQueryParam(name) {
-  const urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get(name);
-}
+    function getQueryParam(name) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(name);
+    }
 
-async function loadSettings() {
-  try {
-    const challenge = getQueryParam("consent_challenge");
-    if (!challenge) {
-      alert("consent_challenge не указан");
+    async function loadSettings() {
+      try {
+        const challenge = getQueryParam("consent_challenge");
+        if (!challenge) {
+          alert("consent_challenge не указан");
+          return;
+        }
+        // Основные настройки
+        const form = document.forms.consentForm;
+        const settingsRes = await fetch(`/consent_settings?consent_challenge=${challenge}`);
+        const settingsData = await settingsRes.json();
+        form.elements["session_id"].value = settingsData.session_id;
+        if (settingsData.active_session_info) {
+          document.getElementById("activeSessionBlock").style.display = "block";
+          document.getElementById("activeSessionInfoJson").textContent = JSON.stringify(
+            settingsData.active_session_info, null, 2
+          );
+        }
+
+            // JSON для отображения
+        const consentRequestRes = await fetch(`/consent_request_data?session_id=${settingsData.session_id}`);
+        const consentRequestData = await consentRequestRes.json();
+        document.getElementById("consentRequestJson").textContent = JSON.stringify(consentRequestData, null, 2);
+
+        form.consent_challenge.value = challenge;
+
+        for (const key in settingsData) {
+          if (key === "session") {
+            if (settingsData.session?.id_token && form['session.id_token']) {
+              form['session.id_token'].value = JSON.stringify(settingsData.session.id_token, null, 2);
+            }
+            if (settingsData.session?.access_token && form['session.access_token']) {
+              form['session.access_token'].value = JSON.stringify(settingsData.session.access_token, null, 2);
+            }
+            continue;
+          }
+
+          const el = form.elements[key];
+          if (!el) continue;
+
+          if (el.type === 'checkbox') {
+            el.checked = Boolean(settingsData[key]);
+          } else if (Array.isArray(settingsData[key])) {
+            el.value = settingsData[key].join(", ");
+          } else if (typeof settingsData[key] === 'object' && settingsData[key] !== null) {
+            el.value = JSON.stringify(settingsData[key], null, 2);
+          } else {
+            el.value = settingsData[key];
+          }
+        }
+
+        document.querySelectorAll("input[data-json]").forEach(input => {
+          input.addEventListener("input", () => {
+            const mustBeObject = input.hasAttribute("data-json-object");
+            validateJsonField(input, mustBeObject);
+          });
+        });
+
+      } catch (e) {
+        alert('Ошибка загрузки настроек: ' + e.message);
+        console.error(e);
+      }
+    }
+
+
+
+    async function onSubmit(continueFlow) {
+      const form = document.forms.consentForm;
+        if (!validateAllJsonFields()) {
+      alert("Проверьте корректность JSON в выделенных полях");
       return;
     }
-    // Основные настройки
-    const settingsRes = await fetch(`/consent_settings?consent_challenge=${challenge}`);
-    const settingsData = await settingsRes.json();
-
-    if (settingsData.active_session_info) {
-      document.getElementById("activeSessionBlock").style.display = "block";
-      document.getElementById("activeSessionInfoJson").textContent = JSON.stringify(
-        settingsData.active_session_info, null, 2
-      );
+      if (!continueFlow) {
+        const data = {
+          consent_challenge: form.consent_challenge.value,
+          continue_: false,
+          error: form.error.value || "access_denied",
+          error_description: form.error_description.value || "Пользователь отказался предоставить согласие"
+        };
     }
-
-        // JSON для отображения
-    const consentRequestRes = await fetch(`/consent_request_data`);
-    const consentRequestData = await consentRequestRes.json();
-    document.getElementById("consentRequestJson").textContent = JSON.stringify(consentRequestData, null, 2);
-
-    const form = document.forms.consentForm;
-    form.consent_challenge.value = challenge;
-
-    for (const key in settingsData) {
-      if (key === "session") {
-        if (settingsData.session?.id_token && form['session.id_token']) {
-          form['session.id_token'].value = JSON.stringify(settingsData.session.id_token, null, 2);
-        }
-        if (settingsData.session?.access_token && form['session.access_token']) {
-          form['session.access_token'].value = JSON.stringify(settingsData.session.access_token, null, 2);
-        }
-        continue;
+      let idToken = {}, accessToken = {}, context = {};
+      try {
+        idToken = form['session.id_token'].value ? JSON.parse(form['session.id_token'].value) : {};
+        accessToken = form['session.access_token'].value ? JSON.parse(form['session.access_token'].value) : {};
+        context = form.context.value ? JSON.parse(form.context.value) : {};
+      } catch (e) {
+        alert('Ошибка парсинга JSON: ' + e.message);
+        return;
       }
 
-      const el = form.elements[key];
-      if (!el) continue;
+      const data = {
+        session_id: form.session_id.value,
+        consent_challenge: form.consent_challenge.value,
+        context: context,
+        grant_access_token_audience: form.grant_access_token_audience.value
+          .replace(/\s+/g, ',')
+          .split(',')
+          .map(s => s.trim())
+          .filter(Boolean),
+        grant_scope: form.grant_scope.value
+          .replace(/\s+/g, ',')               // заменяем пробелы на запятые
+          .split(',')                          // разбиваем по запятым
+          .map(s => s.trim())                  // убираем лишние пробелы
+          .filter(Boolean),                    // убираем пустые строки
+        remember: form.remember.checked,
+        remember_for: parseInt(form.remember_for.value, 10),
+        session: {
+          id_token: idToken,
+          access_token: accessToken
+        },
+        continue_: continueFlow,
+        error: null,
+        error_description: null
+      };
 
-      if (el.type === 'checkbox') {
-        el.checked = Boolean(settingsData[key]);
-      } else if (Array.isArray(settingsData[key])) {
-        el.value = settingsData[key].join(", ");
-      } else if (typeof settingsData[key] === 'object' && settingsData[key] !== null) {
-        el.value = JSON.stringify(settingsData[key], null, 2);
-      } else {
-        el.value = settingsData[key];
-      }
-    }
-
-    document.querySelectorAll("input[data-json]").forEach(input => {
-      input.addEventListener("input", () => {
-        const mustBeObject = input.hasAttribute("data-json-object");
-        validateJsonField(input, mustBeObject);
+      const res = await fetch('/consent_process', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
       });
-    });
 
-  } catch (e) {
-    alert('Ошибка загрузки настроек: ' + e.message);
-    console.error(e);
-  }
-}
-
-
-
-async function onSubmit(continueFlow) {
-  const form = document.forms.consentForm;
-    if (!validateAllJsonFields()) {
-  alert("Проверьте корректность JSON в выделенных полях");
-  return;
-}
-  if (!continueFlow) {
-    const data = {
-      consent_challenge: form.consent_challenge.value,
-      continue_: false,
-      error: form.error.value || "access_denied",
-      error_description: form.error_description.value || "Пользователь отказался предоставить согласие"
-    };
-}
-  let idToken = {}, accessToken = {}, context = {};
-  try {
-    idToken = form['session.id_token'].value ? JSON.parse(form['session.id_token'].value) : {};
-    accessToken = form['session.access_token'].value ? JSON.parse(form['session.access_token'].value) : {};
-    context = form.context.value ? JSON.parse(form.context.value) : {};
-  } catch (e) {
-    alert('Ошибка парсинга JSON: ' + e.message);
-    return;
-  }
-
-  const data = {
-    consent_challenge: form.consent_challenge.value,
-    context: context,
-    grant_access_token_audience: form.grant_access_token_audience.value
-      .replace(/\s+/g, ',')
-      .split(',')
-      .map(s => s.trim())
-      .filter(Boolean),
-    grant_scope: form.grant_scope.value
-      .replace(/\s+/g, ',')               // заменяем пробелы на запятые
-      .split(',')                          // разбиваем по запятым
-      .map(s => s.trim())                  // убираем лишние пробелы
-      .filter(Boolean),                    // убираем пустые строки
-    remember: form.remember.checked,
-    remember_for: parseInt(form.remember_for.value, 10),
-    session: {
-      id_token: idToken,
-      access_token: accessToken
-    },
-    continue_: continueFlow,
-    error: null,
-    error_description: null
-  };
-
-  const res = await fetch('/consent_process', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-
-  if (res.ok) {
-    const result = await res.json();
-if (result.redirect_url) {
-  redirectWithHostRewrite(result.redirect_url);
-} else {
-  alert('Успешно, но без redirect_url');
-}
-
-  } else {
-    const errorText = await res.text();
-    alert('Ошибка сервера: ' + errorText);
-  }
-
-}
-function validateJsonInput(input) {
-  const value = input.value.trim();
-  if (!value) return true;
-  try {
-    const parsed = JSON.parse(value);
-    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
-      throw new Error("Ожидается JSON-объект");
-    }
-    input.style.border = "";
-    input.title = "";
-    return true;
-  } catch (e) {
-    input.style.border = "2px solid red";
-    input.title = "Ошибка JSON: " + e.message;
-    return false;
-  }
-}
-function validateJsonField(input, mustBeObject = false) {
-  const value = input.value.trim();
-  if (!value) {
-    input.style.border = "";
-    input.title = "";
-    return true;
-  }
-  try {
-    const parsed = JSON.parse(value);
-
-    if (mustBeObject && (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed))) {
-      throw new Error("Ожидается JSON-объект (не массив)");
+      if (res.ok) {
+        const result = await res.json();
+    if (result.redirect_url) {
+      redirectWithHostRewrite(result.redirect_url);
+    } else {
+      alert('Успешно, но без redirect_url');
     }
 
-    input.style.border = "";
-    input.title = "";
-    return true;
-  } catch (e) {
-    input.style.border = "2px solid red";
-    input.title = "Ошибка JSON: " + e.message;
-    return false;
-  }
-}
+      } else {
+        const errorText = await res.text();
+        alert('Ошибка сервера: ' + errorText);
+      }
 
-function validateAllJsonFields() {
-  const jsonInputs = document.querySelectorAll("input[data-json]");
-  let allValid = true;
+    }
+    function validateJsonInput(input) {
+      const value = input.value.trim();
+      if (!value) return true;
+      try {
+        const parsed = JSON.parse(value);
+        if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+          throw new Error("Ожидается JSON-объект");
+        }
+        input.style.border = "";
+        input.title = "";
+        return true;
+      } catch (e) {
+        input.style.border = "2px solid red";
+        input.title = "Ошибка JSON: " + e.message;
+        return false;
+      }
+    }
+    function validateJsonField(input, mustBeObject = false) {
+      const value = input.value.trim();
+      if (!value) {
+        input.style.border = "";
+        input.title = "";
+        return true;
+      }
+      try {
+        const parsed = JSON.parse(value);
 
-  jsonInputs.forEach(input => {
-    const mustBeObject = input.hasAttribute("data-json-object");
-    const valid = validateJsonField(input, mustBeObject);
-    if (!valid) allValid = false;
-  });
+        if (mustBeObject && (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed))) {
+          throw new Error("Ожидается JSON-объект (не массив)");
+        }
 
-  return allValid;
-}
-function redirectWithHostRewrite(originalUrl) {
-  const correctedPath = originalUrl.replace("http://localhost:4444/", "");
+        input.style.border = "";
+        input.title = "";
+        return true;
+      } catch (e) {
+        input.style.border = "2px solid red";
+        input.title = "Ошибка JSON: " + e.message;
+        return false;
+      }
+    }
 
-  const currentHost = window.location.hostname;
-  let baseUrl;
+    function validateAllJsonFields() {
+      const jsonInputs = document.querySelectorAll("input[data-json]");
+      let allValid = true;
 
-  if (currentHost === "192.168.88.5") {
-    baseUrl = "http://192.168.88.5:3001/";
-  } else if (currentHost === "logbox.myddns.me") {
-    baseUrl = "http://logbox.myddns.me:3001/";
-  } else {
-    baseUrl = "http://localhost:4444/";
-  }
+      jsonInputs.forEach(input => {
+        const mustBeObject = input.hasAttribute("data-json-object");
+        const valid = validateJsonField(input, mustBeObject);
+        if (!valid) allValid = false;
+      });
 
-  location.href = baseUrl + correctedPath;
-}
+      return allValid;
+    }
+    function redirectWithHostRewrite(originalUrl) {
+      const correctedPath = originalUrl.replace("http://localhost:4444/", "");
 
-loadSettings();
+      const currentHost = window.location.hostname;
+      let baseUrl;
+
+      if (currentHost === "192.168.88.5") {
+        baseUrl = "http://192.168.88.5:3001/";
+      } else if (currentHost === "logbox.myddns.me") {
+        baseUrl = "http://logbox.myddns.me:3001/";
+      } else {
+        baseUrl = "http://localhost:4444/";
+      }
+
+      location.href = baseUrl + correctedPath;
+    }
+
+    loadSettings();
 </script>
 </body>
 </html>

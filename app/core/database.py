@@ -1,5 +1,4 @@
-from sqlalchemy import create_engine, MetaData, select, desc, func, and_, cast
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import create_engine, MetaData, select, desc, func, and_
 from sqlalchemy.orm import sessionmaker
 
 
@@ -34,7 +33,8 @@ def fetch_latest_flow_by_session_and_subject(login_session_id: str, subject: str
                 flow.c.login_session_id == login_session_id,
                 flow.c.subject == subject,
                 func.jsonb_array_length(flow.c.granted_scope) > 0,
-                flow.c.consent_error == '{}'
+                flow.c.consent_error == '{}',
+                flow.c.login_error == '{}'
             ))
             .order_by(desc(flow.c.requested_at))
             .limit(1)

@@ -1,10 +1,13 @@
-from app.config import settings
+import httpx
 from fastapi import HTTPException, APIRouter
 from fastapi.responses import FileResponse, JSONResponse
-import httpx
+
+from app.config import settings
 from app.logger import logger
 
 router = APIRouter()
+
+
 @router.get("/logout")
 async def serve_logout_page():
     logger.info("Start /logout handler")

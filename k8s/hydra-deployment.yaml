@@ -21,7 +21,7 @@ spec:
           volumeMounts:
             - name: hydra-config
               mountPath: /etc/hydra
-          command: ["serve", "all", "--dev", "-c", "/etc/hydra/hydra.yml"]
+          command: [ "serve", "all", "--dev", "-c", "/etc/hydra/hydra.yml" ]
           env:
             - name: DSN
               value: postgres://hydra:hydra_pass123@postgres:5432/hydra?sslmode=disable

@@ -1,74 +1,74 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>Завершение сессии</title>
-  <style>
-    body { font-family: monospace; background: #f9f9f9; color: #333; padding: 1rem; }
-    #log { white-space: pre-wrap; border: 1px solid #ccc; padding: 1rem; background: #fff; }
-  </style>
-  <script>
-    function log(msg) {
-      console.log(msg);
-      const el = document.getElementById('log');
-      el.textContent += msg + '\n';
-    }
-
-    function redirectWithHostRewrite(originalUrl) {
-      const correctedPath = originalUrl.replace("http://localhost:4444/", "");
-
-      const currentHost = window.location.hostname;
-      let baseUrl;
-
-      if (currentHost === "192.168.88.5") {
-        baseUrl = "http://192.168.88.5:3001/";
-      } else if (currentHost === "logbox.myddns.me") {
-        baseUrl = "http://logbox.myddns.me:3001/";
-      } else {
-        baseUrl = "http://localhost:4444/";
-      }
-
-      location.href = baseUrl + correctedPath;
-    }
-
-    window.onload = async () => {
-      log("=== Logout Flow Started ===");
-
-      const params = new URLSearchParams(window.location.search);
-      const challenge = params.get("logout_challenge");
-      log("Parsed logout_challenge: " + challenge);
-
-      if (!challenge) {
-        log("Ошибка: отсутствует logout_challenge в URL");
-        return;
-      }
-
-      try {
-        const url = `/logout_process?logout_challenge=${encodeURIComponent(challenge)}`;
-        log("Запрос к API: " + url);
-
-        const response = await fetch(url);
-        log("Ответ получен, статус: " + response.status);
-
-        const data = await response.json();
-        log("JSON ответ: " + JSON.stringify(data));
-
-        if (data.redirect_to) {
-          log("Редирект на: " + data.redirect_to);
-          redirectWithHostRewrite(data.redirect_to);
-          // window.location.href = data.redirect_to; // Альтернатива, если не нужна замена host
-        } else {
-          log("Ошибка: redirect_to отсутствует в ответе API.");
+    <meta charset="UTF-8">
+    <title>Завершение сессии</title>
+    <style>
+        body { font-family: monospace; background: #f9f9f9; color: #333; padding: 1rem; }
+        #log { white-space: pre-wrap; border: 1px solid #ccc; padding: 1rem; background: #fff; }
+    </style>
+    <script>
+        function log(msg) {
+          console.log(msg);
+          const el = document.getElementById('log');
+          el.textContent += msg + '\n';
         }
-      } catch (e) {
-        log("Исключение при fetch /logout_process:");
-        log(e.toString());
-      }
-    };
-  </script>
+
+        function redirectWithHostRewrite(originalUrl) {
+          const correctedPath = originalUrl.replace("http://localhost:4444/", "");
+
+          const currentHost = window.location.hostname;
+          let baseUrl;
+
+          if (currentHost === "192.168.88.5") {
+            baseUrl = "http://192.168.88.5:3001/";
+          } else if (currentHost === "logbox.myddns.me") {
+            baseUrl = "http://logbox.myddns.me:3001/";
+          } else {
+            baseUrl = "http://localhost:4444/";
+          }
+
+          location.href = baseUrl + correctedPath;
+        }
+
+        window.onload = async () => {
+          log("=== Logout Flow Started ===");
+
+          const params = new URLSearchParams(window.location.search);
+          const challenge = params.get("logout_challenge");
+          log("Parsed logout_challenge: " + challenge);
+
+          if (!challenge) {
+            log("Ошибка: отсутствует logout_challenge в URL");
+            return;
+          }
+
+          try {
+            const url = `/logout_process?logout_challenge=${encodeURIComponent(challenge)}`;
+            log("Запрос к API: " + url);
+
+            const response = await fetch(url);
+            log("Ответ получен, статус: " + response.status);
+
+            const data = await response.json();
+            log("JSON ответ: " + JSON.stringify(data));
+
+            if (data.redirect_to) {
+              log("Редирект на: " + data.redirect_to);
+              redirectWithHostRewrite(data.redirect_to);
+              // window.location.href = data.redirect_to; // Альтернатива, если не нужна замена host
+            } else {
+              log("Ошибка: redirect_to отсутствует в ответе API.");
+            }
+          } catch (e) {
+            log("Исключение при fetch /logout_process:");
+            log(e.toString());
+          }
+        };
+    </script>
 </head>
 <body>
-  <h2>Завершение сессии...</h2>
-  <div id="log">[Журнал выполнения]</div>
+<h2>Завершение сессии...</h2>
+<div id="log">[Журнал выполнения]</div>
 </body>
 </html>

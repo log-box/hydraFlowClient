@@ -2,60 +2,60 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <title>Hydra Auth Form</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      padding: 1rem;
-      max-width: 600px;
-      margin: auto;
-    }
+    <meta charset="UTF-8"/>
+    <title>Hydra Auth Form</title>
+    <style>
+        body {
+          font-family: sans-serif;
+          padding: 1rem;
+          max-width: 600px;
+          margin: auto;
+        }
 
-    label {
-      display: block;
-      margin-top: 1rem;
-    }
+        label {
+          display: block;
+          margin-top: 1rem;
+        }
 
-    select,
-    input[type=text] {
-      width: 100%;
-      padding: 0.5rem;
-      margin-top: 0.5rem;
-    }
+        select,
+        input[type=text] {
+          width: 100%;
+          padding: 0.5rem;
+          margin-top: 0.5rem;
+        }
 
-    button {
-      margin-top: 2rem;
-      padding: 0.7rem 1.2rem;
-    }
-  </style>
+        button {
+          margin-top: 2rem;
+          padding: 0.7rem 1.2rem;
+        }
+    </style>
 </head>
 
 <body>
-  <h1>OAuth2 GET запрос</h1>
-  <form id="authForm">
+<h1>OAuth2 GET запрос</h1>
+<form id="authForm">
     <label>Client
-      <select id="client_id"></select>
+        <select id="client_id"></select>
     </label>
     <label>Redirect URI
-      <select id="redirect_uri"></select>
+        <select id="redirect_uri"></select>
     </label>
     <label>Scope
-      <input type="text" id="scope" value="openid offline">
+        <input id="scope" type="text" value="openid offline">
     </label>
     <label>State
-      <input type="text" id="state" value="random_state_value">
+        <input id="state" type="text" value="">
     </label>
     <label>Nonce
-      <input type="text" id="nonce" value="random_nonce_value">
+        <input id="nonce" type="text" value="">
     </label>
     <label>Response Type
-      <input type="text" id="response_type" value="code">
+        <input id="response_type" type="text" value="code">
     </label>
     <button type="submit">Перейти по ссылке</button>
-  </form>
+</form>
 
-  <script>
+<script>
     let clients = [];
 
     async function loadClients() {
@@ -129,7 +129,20 @@
     });
 
     loadClients();
-  </script>
+function generateUUIDv4() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = (crypto.getRandomValues(new Uint8Array(1))[0] & 15) >> 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('state').value = generateUUIDv4();
+  document.getElementById('nonce').value = generateUUIDv4();
+});
+
+</script>
 </body>
 
 </html>

@@ -11,7 +11,9 @@ class ConsentSession(BaseModel):
 class ClientData(BaseModel):
     post_logout_redirect_uris: Optional[List[str]] = None
 
+
 class ConsentSettingsData(BaseModel):
+    session_id: str
     context: Any = Field(..., description="Raw JSON object")
     grant_access_token_audience: List[str]
     grant_scope: List[str]
@@ -23,6 +25,7 @@ class ConsentSettingsData(BaseModel):
 
 
 class ConsentFormSubmitData(BaseModel):
+    session_id: str
     consent_challenge: str
     continue_: bool
     context: Optional[Dict[str, Any]] = None
@@ -36,6 +39,7 @@ class ConsentFormSubmitData(BaseModel):
 
 
 class LoginSettingsData(BaseModel):
+    session_id: str
     subject: str
     credential: str
     acr: str
@@ -48,6 +52,7 @@ class LoginSettingsData(BaseModel):
 
 
 class LoginFormSubmitData(BaseModel):
+    session_id: str
     login_challenge: str
     continue_: bool
     subject: Optional[str] = None
