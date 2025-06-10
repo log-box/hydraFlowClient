@@ -14,14 +14,40 @@ async def serve_logout_page():
     return FileResponse("app/static/logout.html")
 
 
+@router.get("/logout_request_data")
+async def get_login_request_data(logout_challenge: str):
+    logger.info("Start /logout_request_data handler")
+    if not isinstance(logout_challenge, str):
+        raise HTTPException(status_code=400, detail="logout_challenge must be a string")
+    logger.debug(f"Received logout_challenge: {logout_challenge}")
+
+    url = f"{settings.HYDRA_PRIVATE_URL}/admin/oauth2/auth/requests/logout"
+
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url, params={"logout_challenge": logout_challenge})
+            response.raise_for_status()
+            logout_request_data = response.json()
+            if not logout_request_data:
+                logger.error("Missing 'logout_request_data' in Hydra response")
+                raise HTTPException(status_code=500, detail="Hydra response missing 'logout_request_data'")
+
+            logger.info(f"Received logout_request_data: {logout_request_data}")
+            return JSONResponse(content={"logout_request_data": logout_request_data})
+
+    except httpx.HTTPStatusError as e:
+        logger.exception("Hydra request failed")
+        raise HTTPException(status_code=e.response.status_code, detail=e.response.text)
+    except Exception as e:
+        logger.exception("Unexpected error during logout")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/logout_process")
 async def logout_endpoint(logout_challenge: str):
     logger.info("Start /logout_process handler")
     if not isinstance(logout_challenge, str):
         raise HTTPException(status_code=400, detail="logout_challenge must be a string")
-    logger.info("Start /logout handler")
-    logger.debug(f"Received logout_challenge: {logout_challenge}")
-
     url = f"{settings.HYDRA_PRIVATE_URL}/admin/oauth2/auth/requests/logout/accept"
 
     try:
