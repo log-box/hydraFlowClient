@@ -65,3 +65,8 @@ class LoginFormSubmitData(BaseModel):
     remember_for: Optional[int] = None
     error: Optional[str] = None
     error_description: Optional[str] = None
+
+
+class LogoutPayload(BaseModel):
+    subject: Optional[str] = None
+    client_id: Optional[str] = None

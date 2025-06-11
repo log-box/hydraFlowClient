@@ -16,10 +16,28 @@
 
   async function fetchAndDisplayLogoutRequest(challenge) {
     try {
-      const logoutRequestRes = await fetch(`/logout_request_data?logout_challenge=${challenge}`);
-      const logoutRequestData = await logoutRequestRes.json();
-      document.getElementById("logoutRequestJson").textContent = JSON.stringify(logoutRequestData, null, 2);
+      const res = await fetch(`/logout_request_data?logout_challenge=${challenge}`);
+      const data = await res.json();
+      const logoutRequest = data.logout_request_data;
+
+      document.getElementById("logoutRequestJson").textContent = JSON.stringify(logoutRequest, null, 2);
       log("Данные logout_request загружены и отображены.");
+
+      const sid = logoutRequest.sid;
+      const subject = logoutRequest.subject;
+      const clientId = logoutRequest.client?.client_id;
+      const clientName = logoutRequest.client?.client_name || "неизвестная витрина";
+
+      // Отображаем в заголовке
+      const header = document.getElementById("logoutHeader");
+      header.textContent = `Завершение сессии — SID: ${sid}`;
+
+      // Подставляем название витрины
+      document.getElementById("revokeClientLabel").innerText = `Отозвать токены у витрины: ${clientName}`;
+
+      // Сохраняем данные в скрытых полях
+      document.getElementById("subject").value = subject;
+      document.getElementById("clientId").value = clientId || "";
     } catch (e) {
       log("Ошибка при получении logout_request_data:");
       log(e.toString());
@@ -49,28 +67,43 @@
     }
 
     document.getElementById('challenge').value = challenge;
-    log("Parsed logout_challenge: " + challenge);
-
     fetchAndDisplayLogoutRequest(challenge);
 
     document.getElementById('logoutForm').addEventListener('submit', async e => {
       e.preventDefault();
-
-      const removeAll = document.getElementById('removeAllSessions').checked;
-
       log("=== Logout Flow Started ===");
 
+      const revokeClient = document.getElementById('revokeClient').checked;
+      const revokeAll = document.getElementById('revokeAll').checked;
+
+      const subject = document.getElementById('subject').value;
+      const clientId = document.getElementById('clientId').value;
+      const challenge = document.getElementById('challenge').value;
+
+      const url = `/logout_process?logout_challenge=${encodeURIComponent(challenge)}`;
+      let payload = null;
+
+      if (revokeAll) {
+        payload = { subject };
+      } else if (revokeClient) {
+        payload = { subject, client_id: clientId };
+      }
+
       try {
-        let url = `/logout_process?logout_challenge=${encodeURIComponent(challenge)}`;
-        if (removeAll) {
-          url += `&remove_all_sessions=true`;
+        let response;
+        if (payload) {
+          log("Запрос к API с телом: " + JSON.stringify(payload));
+          response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+        } else {
+          log("Запрос к API без удаления токенов.");
+          response = await fetch(url, { method: "POST" });
         }
 
-        log("Запрос к API: " + url);
-
-        const response = await fetch(url);
         log("Ответ получен, статус: " + response.status);
-
         const data = await response.json();
         log("JSON ответ: " + JSON.stringify(data));
 
@@ -81,12 +114,14 @@
           log("Ошибка: redirect_to отсутствует в ответе API.");
         }
       } catch (e) {
-        log("Исключение при fetch /logout_process:");
+        log("Исключение при запросе к /logout_process:");
         log(e.toString());
       }
     });
   });
 </script>
+
+
 
 </head>
 <body>
@@ -98,18 +133,27 @@
     </details>
 </form>
 
-  <h2>Завершение сессии</h2>
-  <form id="logoutForm">
+<h2 id="logoutHeader">Завершение сессии</h2>
 
-    <input type="hidden" id="challenge" name="logout_challenge" value="">
-        <label>
-    <input type="checkbox" id="removeAllSessions" name="remove_all_sessions">
-    Удалить все сессии?
+<form id="logoutForm">
+  <input type="hidden" id="challenge" name="logout_challenge" value="">
+  <input type="hidden" id="subject" name="subject">
+  <input type="hidden" id="clientId" name="client_id">
+
+  <label>
+    <input type="checkbox" id="revokeClient">
+    <span id="revokeClientLabel">Отозвать токены у витрины</span>
+  </label>
+  <br>
+  <label>
+    <input type="checkbox" id="revokeAll">
+    Отозвать токены у всех витрин
   </label>
 
   <br><br>
-    <button type="submit" id="logoutBtn">Выйти</button>
-  </form>
+  <button type="submit" id="logoutBtn">Выйти</button>
+</form>
+
   <div id="log">[Журнал выполнения]\n</div>
 </body>
 </html>
