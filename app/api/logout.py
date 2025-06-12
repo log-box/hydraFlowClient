@@ -122,3 +122,9 @@ async def backchannel_logout(request: Request):
         return {"status": "ok", "claims": decoded}
     except InvalidTokenError as e:
         raise HTTPException(status_code=400, detail=f"Invalid logout_token: {e}")
+
+
+@router.get("/logout-successful")
+async def logout_successful():
+    logger.info("Start /logout_successful handler")
+    return FileResponse("app/static/logout_successful.html")

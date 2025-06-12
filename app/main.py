@@ -34,8 +34,8 @@ async def proxy_clients():
 
 @app.get("/favicon.ico")
 async def favicon():
-    return Response(
-        content=b"",
+    return FileResponse(
+        path="app/static/favicon.ico",
         media_type="image/x-icon",
         headers={"Cache-Control": "public, max-age=86400"}
     )

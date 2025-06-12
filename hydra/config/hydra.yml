@@ -1,3 +1,10 @@
+db:
+  ignore_unknown_table_columns: false
+log:
+  level: panic
+  leak_sensitive_values: false
+  redaction_text: ""
+  format: json
 serve:
   public:
     host: 0.0.0.0
@@ -20,11 +27,8 @@ urls:
   login: http://localhost:3000/login
   consent: http://localhost:3000/consent
   logout: http://localhost:3000/logout
-#  self:
-#    issuer: http://logbox.myddns.me:4444
-#  login: http://logbox.myddns:3000/login
-#  consent: http://logbox.myddns:3000/consent
-#  logout: http://logbox.myddns:3000/logout
+  error: http://localhost:3000/error
+  post_logout_redirect: http://localhost:3000/logout-successful
 
 secrets:
   system:
@@ -37,3 +41,5 @@ oidc:
       - public
     pairwise:
       salt: youReallyNeedToChangeThis
+oauth2:
+  mirror_top_level_claims: false

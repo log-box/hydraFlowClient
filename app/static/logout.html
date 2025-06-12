@@ -41,6 +41,10 @@
     } catch (e) {
       log("Ошибка при получении logout_request_data:");
       log(e.toString());
+
+    // ⛔ Показать заглушку
+    document.getElementById("mainContent").style.display = "none";
+    document.getElementById("fallbackMessage").style.display = "block";
     }
   }
 
@@ -63,6 +67,9 @@
     if (!challenge) {
       log("Ошибка: отсутствует logout_challenge в URL");
       document.getElementById('logoutBtn').disabled = true;
+        // Показываем fallback-заглушку
+  document.getElementById("mainContent").style.display = "none";
+  document.getElementById("fallbackMessage").style.display = "block";
       return;
     }
 
@@ -126,34 +133,46 @@
 </head>
 <body>
 <h1></h1>
-<form>
+
+<!-- Контент при успехе -->
+<div id="mainContent">
+  <form>
     <details style="margin-top: 2em;">
-        <summary>Детали get logoutChallenge (техническое)</summary>
-        <pre id="logoutRequestJson"></pre>
+      <summary>Детали get logoutChallenge (техническое)</summary>
+      <pre id="logoutRequestJson"></pre>
     </details>
-</form>
+  </form>
 
-<h2 id="logoutHeader">Завершение сессии</h2>
+  <h2 id="logoutHeader">Завершение сессии</h2>
 
-<form id="logoutForm">
-  <input type="hidden" id="challenge" name="logout_challenge" value="">
-  <input type="hidden" id="subject" name="subject">
-  <input type="hidden" id="clientId" name="client_id">
+  <form id="logoutForm">
+    <input type="hidden" id="challenge" name="logout_challenge" value="">
+    <input type="hidden" id="subject" name="subject">
+    <input type="hidden" id="clientId" name="client_id">
 
-  <label>
-    <input type="checkbox" id="revokeClient">
-    <span id="revokeClientLabel">Отозвать токены у витрины</span>
-  </label>
-  <br>
-  <label>
-    <input type="checkbox" id="revokeAll">
-    Отозвать токены у всех витрин
-  </label>
+    <label>
+      <input type="checkbox" id="revokeClient">
+      <span id="revokeClientLabel">Отозвать токены у витрины</span>
+    </label>
+    <br>
+    <label>
+      <input type="checkbox" id="revokeAll">
+      Отозвать токены у всех витрин
+    </label>
 
-  <br><br>
-  <button type="submit" id="logoutBtn">Выйти</button>
-</form>
+    <br><br>
+    <button type="submit" id="logoutBtn">Выйти</button>
+  </form>
 
   <div id="log">[Журнал выполнения]\n</div>
+</div>
+
+<!-- Заглушка при ошибке -->
+<div id="fallbackMessage" style="display:none; padding: 2rem; background: #fff0f0; border: 1px solid #f99;">
+  <h2>Что-то пошло не так</h2>
+  <p>Вы попали на эту страницу при попытке выхода из витрины. Однако мы не смогли получить технические данные для завершения выхода.</p>
+  <p>Возможно, вы попали сюда напрямую или сессия уже завершена.</p>
+  <p>Вы можете закрыть эту вкладку или вернуться на сайт вручную.</p>
+</div>
 </body>
 </html>
