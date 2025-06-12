@@ -62,18 +62,119 @@ async def handle_redirect_uri(
     if error:
         html_content = f"""
         <html>
-            <head><meta charset="utf-8"><title>Ошибка входа</title></head>
-            <body>
-                <h2>Ошибка входа</h2>
-                <p><strong>{html.escape(error)}</strong>: {html.escape(error_description or '')}</p>
-                <a href="/">На главную</a>
-            </body>
+          <head>
+            <meta charset="utf-8">
+            <title>Ошибка входа</title>
+            <style>
+              html, body {{
+                margin: 0;
+                padding: 0;
+                font-family: "Segoe UI", Roboto, sans-serif;
+                background: linear-gradient(145deg, #f0f4f8, #ffffff);
+                color: #2c3e50;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+              }}
+              .container {{
+                background: white;
+                border: 1px solid #e0e6ed;
+                border-radius: 12px;
+                padding: 2rem;
+                box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+                max-width: 480px;
+                width: 90%;
+                text-align: center;
+              }}
+              h2 {{
+                font-size: 1.5rem;
+                margin-bottom: 1rem;
+              }}
+              p {{
+                font-size: 1rem;
+                color: #333;
+                margin-bottom: 1.5rem;
+              }}
+              .error-code {{
+                font-weight: bold;
+                color: #dc3545;
+              }}
+              a {{
+                display: inline-block;
+                margin-top: 1rem;
+                padding: 0.6rem 1.2rem;
+                background-color: #007bff;
+                color: white;
+                text-decoration: none;
+                border-radius: 6px;
+                font-size: 0.95rem;
+              }}
+              a:hover {{
+                background-color: #0056b3;
+              }}
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h2>Ошибка входа</h2>
+              <p><span class="error-code">{html.escape(error)}</span>: {html.escape(error_description or '')}</p>
+              <a href="/">На главную</a>
+            </div>
+          </body>
         </html>
         """
+
         return HTMLResponse(content=html_content)
 
     if not code or not scope:
-        return HTMLResponse("<h1>Некорректный redirect: отсутствует code или scope</h1>", status_code=422)
+        html_content = """
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <title>Ошибка 422 — Некорректный redirect</title>
+            <style>
+              html, body {
+                margin: 0;
+                padding: 0;
+                font-family: "Segoe UI", Roboto, sans-serif;
+                background: #fff5f5;
+                color: #2c3e50;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+              }
+              .container {
+                background: white;
+                border: 1px solid #f5c6cb;
+                border-radius: 12px;
+                padding: 2rem;
+                box-shadow: 0 0 10px rgba(220, 53, 69, 0.1);
+                max-width: 480px;
+                width: 90%;
+                text-align: center;
+              }
+              h1 {
+                color: #dc3545;
+                font-size: 1.3rem;
+                margin-bottom: 1rem;
+              }
+              p {
+                color: #555;
+                font-size: 0.95rem;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h1>Некорректный redirect</h1>
+              <p>Отсутствует параметр <code>code</code> или <code>scope</code> в URL.</p>
+            </div>
+          </body>
+        </html>
+        """
+        return HTMLResponse(content=html_content, status_code=422)
 
     token_request_data = {
         "grant_type": "authorization_code",

@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Выход выполнен</title>
   <style>
     html, body {
@@ -20,7 +21,7 @@
       background: white;
       border: 1px solid #e0e6ed;
       border-radius: 12px;
-      padding: 3rem 2rem;
+      padding: 2rem 1rem;
       box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
       text-align: center;
       max-width: 420px;
@@ -76,13 +77,32 @@
     </svg>
 
     <h1>Вы успешно вышли</h1>
-    <p>Сессия завершена. Вы можете закрыть окно или вернуться на сайт.</p>
+    <p>Сессия завершена. Вы можете вернуться на сайт.</p>
 
-    <a class="button" href="/" onclick="window.close(); return false;">Закрыть</a>
+    <button class="button" id="redirectBtn">Вернуться</button>
 
     <div class="footer">
       OAuth2 Identity Service • Powered by <strong>Hydra</strong>
     </div>
   </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("redirectBtn").addEventListener("click", function () {
+      const host = window.location.hostname;
+      let baseUrl;
+
+      if (host === "192.168.88.5") {
+        baseUrl = "http://192.168.88.5:3001/";
+      } else if (host === "logbox.myddns.me") {
+        baseUrl = "http://logbox.myddns.me:3001/";
+      } else {
+        baseUrl = "http://localhost:3000/";
+      }
+          window.location.href = baseUrl;
+        });
+      });
+</script>
+
 </body>
 </html>

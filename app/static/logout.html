@@ -1,13 +1,147 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <title>Завершение сессии</title>
-    <style>
-        body { font-family: monospace; background: #f9f9f9; color: #333; padding: 1rem; }
-        #log { white-space: pre-wrap; border: 1px solid #ccc; padding: 1rem; background: #fff; }
-        button { margin-top: 1rem; padding: 0.5rem 1rem; }
-    </style>
+  <meta charset="UTF-8">
+  <title>Завершение сессии</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(145deg, #f0f4f8, #ffffff);
+      color: #2c3e50;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+
+    .container {
+      background: white;
+      border: 1px solid #e0e6ed;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+      width: 100%;
+      max-width: 720px;
+      margin-top: 3vh;
+    }
+
+    h2 {
+      font-size: 1.4rem;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: 500;
+    }
+
+    input[type="checkbox"] {
+      margin-right: 0.5rem;
+    }
+
+    button {
+      margin-top: 1.5rem;
+      padding: 0.75rem 1.5rem;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    details {
+      margin-top: 1.5rem;
+    }
+
+    details pre {
+      margin-top: 0.5rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: #f0f0f0;
+      padding: 1em;
+      border-radius: 5px;
+      max-height: 300px;
+      overflow: auto;
+      font-size: 0.85em;
+    }
+
+    #log {
+      margin-top: 2rem;
+      white-space: pre-wrap;
+      border: 1px solid #ccc;
+      padding: 1rem;
+      background: #fff;
+      font-size: 0.9rem;
+      border-radius: 8px;
+    }
+
+    #fallbackMessage {
+      padding: 2rem;
+      background: #fff0f0;
+      border: 1px solid #f99;
+      border-radius: 8px;
+      margin-top: 3vh;
+      max-width: 600px;
+      text-align: center;
+    }
+
+    #fallbackMessage p {
+      margin-bottom: 1em;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+<div class="container" id="mainContent">
+  <h2 id="logoutHeader">Завершение сессии</h2>
+
+  <form id="logoutForm">
+    <input type="hidden" id="challenge" name="logout_challenge" value="">
+    <input type="hidden" id="subject" name="subject">
+    <input type="hidden" id="clientId" name="client_id">
+
+    <label>
+      <input type="checkbox" id="revokeClient">
+      <span id="revokeClientLabel">Отозвать токены у витрины</span>
+    </label>
+
+    <label>
+      <input type="checkbox" id="revokeAll">
+      Отозвать токены у всех витрин
+    </label>
+
+    <button type="submit" id="logoutBtn">Выйти</button>
+
+    <details>
+      <summary>Детали get logoutChallenge (техническое)</summary>
+      <pre id="logoutRequestJson"></pre>
+    </details>
+
+    <div id="log">[Журнал выполнения]\n</div>
+  </form>
+</div>
+
+<!-- Fallback при ошибке -->
+<div id="fallbackMessage" class="hidden">
+  <h2>Что-то пошло не так</h2>
+  <p>Вы попали на эту страницу при попытке выхода из витрины.</p>
+  <p>Однако мы не смогли получить технические данные для завершения выхода.</p>
+  <p>Возможно, вы попали сюда напрямую или сессия уже завершена.</p>
+  <p>Вы можете закрыть эту вкладку или вернуться на сайт вручную.</p>
+</div>
+
 <script>
   function log(msg) {
     console.log(msg);
@@ -28,35 +162,38 @@
       const clientId = logoutRequest.client?.client_id;
       const clientName = logoutRequest.client?.client_name || "неизвестная витрина";
 
-      // Отображаем в заголовке
-      const header = document.getElementById("logoutHeader");
-      header.textContent = `Завершение сессии — SID: ${sid}`;
-
-      // Подставляем название витрины
+      document.getElementById("logoutHeader").textContent = `Завершение сессии — SID: ${sid}`;
       document.getElementById("revokeClientLabel").innerText = `Отозвать токены у витрины: ${clientName}`;
-
-      // Сохраняем данные в скрытых полях
       document.getElementById("subject").value = subject;
       document.getElementById("clientId").value = clientId || "";
     } catch (e) {
       log("Ошибка при получении logout_request_data:");
       log(e.toString());
-
-    // ⛔ Показать заглушку
-    document.getElementById("mainContent").style.display = "none";
-    document.getElementById("fallbackMessage").style.display = "block";
+      document.getElementById("mainContent").classList.add("hidden");
+      document.getElementById("fallbackMessage").classList.remove("hidden");
     }
   }
 
-  function redirectWithHostRewrite(originalUrl) {
-    const correctedPath = originalUrl.replace("http://localhost:4444/", "");
-    const host = window.location.hostname;
-    const baseUrl =
-      host === "192.168.88.5"       ? "http://192.168.88.5:3001/" :
-      host === "logbox.myddns.me"  ? "http://logbox.myddns.me:3001/" :
-                                    "http://localhost:4444/";
-    location.href = baseUrl + correctedPath;
+function redirectWithHostRewrite(originalUrl) {
+  const correctedPath = originalUrl.replace("http://localhost:4444/", "");
+
+  const currentHost = window.location.hostname;
+  let baseUrl;
+  log("currentHost:");
+  log("currentHost: [" + currentHost + "]");
+  if (currentHost === "192.168.88.5") {
+    baseUrl = "http://192.168.88.5:3001/";
+  } else if (currentHost === "logbox.myddns.me") {
+    baseUrl = "http://logbox.myddns.me:3001/";
+  } else {
+    baseUrl = "http://localhost:4444/";
   }
+
+  const finalUrl = baseUrl + correctedPath;
+   log("Redirecting to: " + finalUrl);
+  window.location.href = finalUrl;
+}
+
 
   document.addEventListener('DOMContentLoaded', () => {
     log("=== Logout Flow Ready ===");
@@ -67,9 +204,8 @@
     if (!challenge) {
       log("Ошибка: отсутствует logout_challenge в URL");
       document.getElementById('logoutBtn').disabled = true;
-        // Показываем fallback-заглушку
-  document.getElementById("mainContent").style.display = "none";
-  document.getElementById("fallbackMessage").style.display = "block";
+      document.getElementById("mainContent").classList.add("hidden");
+      document.getElementById("fallbackMessage").classList.remove("hidden");
       return;
     }
 
@@ -82,14 +218,12 @@
 
       const revokeClient = document.getElementById('revokeClient').checked;
       const revokeAll = document.getElementById('revokeAll').checked;
-
       const subject = document.getElementById('subject').value;
       const clientId = document.getElementById('clientId').value;
       const challenge = document.getElementById('challenge').value;
-
       const url = `/logout_process?logout_challenge=${encodeURIComponent(challenge)}`;
-      let payload = null;
 
+      let payload = null;
       if (revokeAll) {
         payload = { subject };
       } else if (revokeClient) {
@@ -127,52 +261,5 @@
     });
   });
 </script>
-
-
-
-</head>
-<body>
-<h1></h1>
-
-<!-- Контент при успехе -->
-<div id="mainContent">
-  <form>
-    <details style="margin-top: 2em;">
-      <summary>Детали get logoutChallenge (техническое)</summary>
-      <pre id="logoutRequestJson"></pre>
-    </details>
-  </form>
-
-  <h2 id="logoutHeader">Завершение сессии</h2>
-
-  <form id="logoutForm">
-    <input type="hidden" id="challenge" name="logout_challenge" value="">
-    <input type="hidden" id="subject" name="subject">
-    <input type="hidden" id="clientId" name="client_id">
-
-    <label>
-      <input type="checkbox" id="revokeClient">
-      <span id="revokeClientLabel">Отозвать токены у витрины</span>
-    </label>
-    <br>
-    <label>
-      <input type="checkbox" id="revokeAll">
-      Отозвать токены у всех витрин
-    </label>
-
-    <br><br>
-    <button type="submit" id="logoutBtn">Выйти</button>
-  </form>
-
-  <div id="log">[Журнал выполнения]\n</div>
-</div>
-
-<!-- Заглушка при ошибке -->
-<div id="fallbackMessage" style="display:none; padding: 2rem; background: #fff0f0; border: 1px solid #f99;">
-  <h2>Что-то пошло не так</h2>
-  <p>Вы попали на эту страницу при попытке выхода из витрины. Однако мы не смогли получить технические данные для завершения выхода.</p>
-  <p>Возможно, вы попали сюда напрямую или сессия уже завершена.</p>
-  <p>Вы можете закрыть эту вкладку или вернуться на сайт вручную.</p>
-</div>
 </body>
 </html>

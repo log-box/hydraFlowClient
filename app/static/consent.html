@@ -1,82 +1,169 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <title>Consent challenge stage</title>
-    <style>
-        body { font-family: sans-serif; max-width: 600px; margin: 40px auto; }
-        label { display: block; margin-top: 1em; }
-        input[type="text"], input[type="number"] { width: 100%; padding: 8px; }
-        .button-group { margin-top: 2em; display: flex; justify-content: flex-end; gap: 1em; }
-        button { padding: 10px 20px; }
-        summary {
-          font-weight: bold;
-          cursor: pointer;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Consent challenge stage</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(145deg, #f0f4f8, #ffffff);
+      color: #2c3e50;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
 
-        details pre {
-          margin: 0;
-          white-space: pre-wrap;
-          word-break: break-word;
-          background: #f0f0f0;
-          padding: 1em;
-          border-radius: 5px;
-          max-height: 400px;
-          overflow: auto;
-          font-size: 0.85em;
-        }
-    </style>
+    .container {
+      background: white;
+      border: 1px solid #e0e6ed;
+      border-radius: 12px;
+      padding: 2rem 1rem;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+      width: 100%;
+      max-width: 720px;
+      margin-top: 3vh;
+    }
+
+    h2 {
+      font-size: 1.4rem;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    form label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: 500;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      padding: 0.6rem;
+      margin-top: 0.4rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+
+    input[type="checkbox"] {
+      margin-right: 0.5rem;
+    }
+
+    .button-group {
+      margin-top: 2rem;
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+    }
+
+    button {
+      padding: 0.6rem 1.2rem;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    summary {
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 1.5rem;
+    }
+
+    details pre {
+      margin: 0.5rem 0 0 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: #f0f0f0;
+      padding: 1em;
+      border-radius: 5px;
+      max-height: 400px;
+      overflow: auto;
+      font-size: 0.85em;
+    }
+
+    #activeSessionBlock {
+      background: #f5fff5;
+      border-left: 4px solid #28a745;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-top: 2em;
+    }
+
+    #activeSessionBlock h3 {
+      margin-top: 0;
+    }
+  </style>
 </head>
 <body>
-<h2>Выдача согласия и кастомизация ID и Access токенов</h2>
-<form id="consentForm">
+<div class="container">
+  <h2>Выдача согласия и кастомизация ID и Access токенов</h2>
+  <form id="consentForm">
     <label>Список сервисов, которые будут доверять access token
-        <input name="grant_access_token_audience" placeholder='MAPIC, USSS (через запятую)' type="text">
+      <input name="grant_access_token_audience" placeholder='MAPIC, USSS (через запятую)' type="text">
     </label>
     <label>Hydra выдаст Access токен с этими скопами
-        <input name="grant_scope" placeholder='openid, offline, profile (через запятую)' type="text">
+      <input name="grant_scope" placeholder='openid, offline, profile (через запятую)' type="text">
     </label>
-    <label>Сохранить согласие пользователя (consent сессию)
-        <input name="remember" type="checkbox">
+    <label><input name="remember" type="checkbox"> Сохранить согласие пользователя (consent-сессию)</label>
+    <label>На сколько сохранить согласие (в секундах, 0 = навсегда)
+      <input name="remember_for" placeholder='3600' type="number">
     </label>
-    <label>На сколько сохранить согласие (consent сессию). Значение 0 - без ограничения (секунды)
-        <input name="remember_for" placeholder='3600 (в секундах; 0 = навсегда)' type="number">
-    </label>
-    <label>Любые дополнительные данные, которые вы хотите сохранить и вернуть потом в introspection или в session
-        <input data-json data-json-object name="context"
-               placeholder='{"app": "frontend", "env": "dev"} (валидный JSON-объект)' type="text">
-    </label>
-    <label>Кастомные клеймы, которые попадут в ID Token
-        <input data-json data-json-object
-               name="session.id_token" placeholder='{"login": "user123", "role": "admin"} (валидный JSON-объект)' type="text">
-    </label>
-    <label>Кастомные клеймы, которые попадут в Access Token, а также будут доступны через /userinfo и introspection
-        <input data-json data-json-object
-               name="session.access_token"
-               placeholder='{"identity_id": "abc-123", "permissions": ["read", "write"]} (валидный JSON-объект)' type="text">
-    </label>
-    <label>Error (для отказа в согласии)
-        <input name="error" placeholder="например, access_denied" type="text">
+<label>Дополнительные данные (context)
+  <textarea data-json data-json-object name="context"
+            placeholder='{"app": "frontend", "env": "dev"}'
+            rows="3" onblur="tryFormatJson(this)"></textarea>
+</label>
+
+<label>Кастомные клеймы ID Token
+  <textarea data-json data-json-object name="session.id_token"
+            placeholder='{"login": "user123"}'
+            rows="3" onblur="tryFormatJson(this)"></textarea>
+</label>
+
+<label>Кастомные клеймы Access Token
+  <textarea data-json data-json-object name="session.access_token"
+            placeholder='{"identity_id": "abc-123"}'
+            rows="3" onblur="tryFormatJson(this)"></textarea>
+</label>
+
+    <label>Error (для отказа)
+      <input name="error" placeholder="например, access_denied" type="text">
     </label>
     <label>Error Description
-        <input name="error_description" placeholder="например, Пользователь отказался от согласия" type="text">
+      <input name="error_description" placeholder="например, Пользователь отказался" type="text">
     </label>
+
     <input name="consent_challenge" type="hidden" value="">
+    <input name="session_id" type="hidden" value="">
+
     <div class="button-group">
-        <button onclick="onSubmit(false)" type="button">Отмена</button>
-        <button onclick="onSubmit(true)" type="button">Далее</button>
+      <button onclick="onSubmit(false)" type="button">Отмена</button>
+      <button onclick="onSubmit(true)" type="button">Далее</button>
     </div>
 
-    <details style="margin-top: 2em;">
-        <summary>Детали get consentChallenge (техническое)</summary>
-        <pre id="consentRequestJson"></pre>
+    <details>
+      <summary>Детали get consentChallenge (техническое)</summary>
+      <pre id="consentRequestJson"></pre>
     </details>
-    <div id="activeSessionBlock" style="display: none; margin-top: 2em;">
-        <h3>⚡ Значения подгружены из активной сессии</h3>
-        <pre id="activeSessionInfoJson"></pre>
+
+    <div id="activeSessionBlock" style="display: none;">
+      <h3>⚡ Значения подгружены из активной сессии</h3>
+      <pre id="activeSessionInfoJson"></pre>
     </div>
-    <input name="session_id" type="hidden" value="">
-</form>
+  </form>
+</div>
 
 <script>
     function getQueryParam(name) {
@@ -288,7 +375,17 @@
 
       location.href = baseUrl + correctedPath;
     }
+function tryFormatJson(textarea) {
+  const value = textarea.value.trim();
+  if (!value) return;
 
+  try {
+    const parsed = JSON.parse(value);
+    textarea.value = JSON.stringify(parsed, null, 2);
+  } catch (e) {
+    // JSON невалидный — оставляем как есть
+  }
+}
     loadSettings();
 </script>
 </body>
