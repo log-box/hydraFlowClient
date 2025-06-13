@@ -264,9 +264,13 @@ async def redirect_uri_endpoint(
 
     session_id = get_session_id_by_state(state)
     if not session_id:
-        raise HTTPException(status_code=404, detail="Session not found for provided state")
+        context=None
+        logger.info(f"СSession not found for provided state")
+    else:
+        context = get_session_context(session_id)
+        # raise HTTPException(status_code=404, detail="Session not found for provided state")
 
-    context = get_session_context(session_id)
+
 
     return await handle_redirect_uri(
         request, code, scope, state, error, error_description,
@@ -290,7 +294,8 @@ async def redirect_uri_second_endpoint(
 
     session_id = get_session_id_by_state(state)
     if not session_id:
-        raise HTTPException(status_code=404, detail="Session not found for provided state")
+        logger.info(f"СSession not found for provided state")
+        # raise HTTPException(status_code=404, detail="Session not found for provided state")
 
     context = get_session_context(session_id)
 
