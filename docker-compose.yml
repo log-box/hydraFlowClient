@@ -47,7 +47,6 @@ services:
     user: root
     volumes:
       - ./init:/init
-      - ./init/.env:/init/.env
       - ./app:/app
     working_dir: /init
     entrypoint: >
@@ -58,13 +57,6 @@ services:
         done &&
         python createClients.py
       "
-    environment:
-      - HYDRA_ADMIN_URL=${HYDRA_ADMIN_URL}
-      - REDIRECT_URI=${REDIRECT_URI}
-      - REDIRECT_URIS=${REDIRECT_URIS}
-      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
-      - LOG_PATH=${LOG_PATH}
-      - LOG_LEVEL=${LOG_LEVEL}
     restart: "no"
 
 
@@ -86,6 +78,7 @@ services:
     depends_on:
       - hydra
     restart: unless-stopped
+    user: "${UID}:${GID}"
 
 volumes:
   pgdata:

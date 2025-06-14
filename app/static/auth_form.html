@@ -1,245 +1,245 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Hydra Auth Form</title>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      font-family: "Segoe UI", Roboto, sans-serif;
-      background: linear-gradient(145deg, #f0f4f8, #ffffff);
-      color: #2c3e50;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-    }
+    <meta charset="UTF-8"/>
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <title>Hydra Auth Form</title>
+    <style>
+        html, body {
+          margin: 0;
+          padding: 0;
+          font-family: "Segoe UI", Roboto, sans-serif;
+          background: linear-gradient(145deg, #f0f4f8, #ffffff);
+          color: #2c3e50;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          min-height: 100vh;
+        }
 
-    .container {
-      background: #fff;
-      border: 1px solid #e0e6ed;
-      border-radius: 12px;
-      padding: 2rem 1rem;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
-      width: 100%;
-      max-width: 600px;
-    }
+        .container {
+          background: #fff;
+          border: 1px solid #e0e6ed;
+          border-radius: 12px;
+          padding: 2rem 1rem;
+          box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+          width: 100%;
+          max-width: 600px;
+        }
 
-    h1 {
-      font-size: 1.4rem;
-      margin-bottom: 1rem;
-      text-align: center;
-    }
+        h1 {
+          font-size: 1.4rem;
+          margin-bottom: 1rem;
+          text-align: center;
+        }
 
-    form label {
-      display: block;
-      margin-top: 1rem;
-      font-weight: 500;
-    }
+        form label {
+          display: block;
+          margin-top: 1rem;
+          font-weight: 500;
+        }
 
-    select,
-    input[type="text"],
-    input[type="number"] {
-      width: 100%;
-      padding: 0.6rem;
-      margin-top: 0.4rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 1rem;
-    }
+        select,
+        input[type="text"],
+        input[type="number"] {
+          width: 100%;
+          padding: 0.6rem;
+          margin-top: 0.4rem;
+          border: 1px solid #ccc;
+          border-radius: 6px;
+          font-size: 1rem;
+        }
 
-    button {
-      margin-top: 2rem;
-      padding: 0.75rem 1.5rem;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 1rem;
-      width: 100%;
-    }
+        button {
+          margin-top: 2rem;
+          padding: 0.75rem 1.5rem;
+          background-color: #007bff;
+          color: white;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          font-size: 1rem;
+          width: 100%;
+        }
 
-    button:hover {
-      background-color: #0056b3;
-    }
+        button:hover {
+          background-color: #0056b3;
+        }
 
-    input:invalid {
-      border: 2px solid red;
-    }
-  </style>
+        input:invalid {
+          border: 2px solid red;
+        }
+    </style>
 </head>
 
 <body>
 <div class="container">
-  <h1>Запрос /oauth2/auth в Ory Hydra</h1>
-  <form id="authForm">
-    <label>Клиент из БД Ory Hydra
-      <select id="client_id"></select>
-    </label>
-    <label>Зарегистрированные Redirect URIs клиента
-      <select id="redirect_uri"></select>
-    </label>
-    <label>Доступные Scope клиента
-      <input id="scope" type="text" value="" placeholder="openid offline">
-    </label>
-    <label>State
-      <input id="state" type="text" value="">
-    </label>
-    <label>Nonce
-      <input id="nonce" type="text" value="">
-    </label>
-    <label>Response Type
-      <input id="response_type" type="text" value="code">
-    </label>
-    <label>ID Token Hint
-      <input id="id_token_hint" type="text" placeholder="id_token_hint (строка)">
-    </label>
-    <label>Login Hint
-      <input id="login_hint" type="text" placeholder="login_hint (строка)">
-    </label>
-    <label>Prompt
-      <input id="prompt" type="text" placeholder="none, login, consent или select_account">
-    </label>
-    <label>Max Age
-      <input id="max_age" type="number" placeholder="число ≥ 0">
-    </label>
-    <label>ACR Values
-      <input id="acr_values" type="text" placeholder="acr_values (строка)">
-    </label>
-    <button type="submit">Начать сценарий</button>
-  </form>
+    <h1>Запрос /oauth2/auth в Ory Hydra</h1>
+    <form id="authForm">
+        <label>Клиент из БД Ory Hydra
+            <select id="client_id"></select>
+        </label>
+        <label>Зарегистрированные Redirect URIs клиента
+            <select id="redirect_uri"></select>
+        </label>
+        <label>Доступные Scope клиента
+            <input id="scope" placeholder="openid offline" type="text" value="">
+        </label>
+        <label>State
+            <input id="state" type="text" value="">
+        </label>
+        <label>Nonce
+            <input id="nonce" type="text" value="">
+        </label>
+        <label>Response Type
+            <input id="response_type" type="text" value="code">
+        </label>
+        <label>ID Token Hint
+            <input id="id_token_hint" placeholder="id_token_hint (строка)" type="text">
+        </label>
+        <label>Login Hint
+            <input id="login_hint" placeholder="login_hint (строка)" type="text">
+        </label>
+        <label>Prompt
+            <input id="prompt" placeholder="none, login, consent" type="text">
+        </label>
+        <label>Max Age
+            <input id="max_age" placeholder="число ≥ 0" type="number">
+        </label>
+        <label>ACR Values
+            <input id="acr_values" placeholder="acr_values (строка)" type="text">
+        </label>
+        <button type="submit">Начать сценарий</button>
+    </form>
 </div>
 
 <script>
-  let clients = [];
+    let clients = [];
 
-  async function loadClients() {
-    try {
-      const res = await fetch("/proxy/clients");
-      clients = await res.json();
+    async function loadClients() {
+      try {
+        const res = await fetch("/proxy/clients");
+        clients = await res.json();
 
-      const clientSelect = document.getElementById('client_id');
-      clientSelect.innerHTML = '';
+        const clientSelect = document.getElementById('client_id');
+        clientSelect.innerHTML = '';
 
-      for (const client of clients) {
-        const opt = document.createElement('option');
-        opt.value = client.client_id;
-        opt.textContent = client.client_name || client.client_id;
-        clientSelect.appendChild(opt);
+        for (const client of clients) {
+          const opt = document.createElement('option');
+          opt.value = client.client_id;
+          opt.textContent = client.client_name || client.client_id;
+          clientSelect.appendChild(opt);
+        }
+
+        updateRedirects();
+        clientSelect.addEventListener('change', updateRedirects);
+      } catch (e) {
+        alert('Ошибка при загрузке клиентов');
+        console.error(e);
       }
-
-      updateRedirects();
-      clientSelect.addEventListener('change', updateRedirects);
-    } catch (e) {
-      alert('Ошибка при загрузке клиентов');
-      console.error(e);
     }
-  }
 
-  function updateRedirects() {
-    const selectedId = document.getElementById('client_id').value;
-    const client = clients.find(c => c.client_id === selectedId);
-    const redirectSelect = document.getElementById('redirect_uri');
-    redirectSelect.innerHTML = '';
+    function updateRedirects() {
+      const selectedId = document.getElementById('client_id').value;
+      const client = clients.find(c => c.client_id === selectedId);
+      const redirectSelect = document.getElementById('redirect_uri');
+      redirectSelect.innerHTML = '';
 
-    if (client) {
-      for (const uri of client.redirect_uris) {
-        const opt = document.createElement('option');
-        opt.value = uri;
-        opt.textContent = uri;
-        redirectSelect.appendChild(opt);
+      if (client) {
+        for (const uri of client.redirect_uris) {
+          const opt = document.createElement('option');
+          opt.value = uri;
+          opt.textContent = uri;
+          redirectSelect.appendChild(opt);
+        }
+        document.getElementById('scope').value = client.scope || '';
       }
-      document.getElementById('scope').value = client.scope || '';
     }
-  }
 
-  function isValidPrompt(value) {
-    return ["none", "login", "consent", "select_account"].includes(value);
-  }
+    function isValidPrompt(value) {
+      return ["none", "login", "consent"].includes(value);
+    }
 
-  function isValidInteger(value) {
-    const parsed = parseInt(value, 10);
-    return !isNaN(parsed) && parsed >= 0 && parsed <= Number.MAX_SAFE_INTEGER;
-  }
+    function isValidInteger(value) {
+      const parsed = parseInt(value, 10);
+      return !isNaN(parsed) && parsed >= 0 && parsed <= Number.MAX_SAFE_INTEGER;
+    }
 
-  function validateAndGetValue(id, validator) {
-    const el = document.getElementById(id);
-    const val = el.value.trim();
-    if (!val) {
+    function validateAndGetValue(id, validator) {
+      const el = document.getElementById(id);
+      const val = el.value.trim();
+      if (!val) {
+        el.style.border = "";
+        el.title = "";
+        return null;
+      }
+      if (!validator(val)) {
+        el.style.border = "2px solid red";
+        el.title = "Недопустимое значение";
+        return false;
+      }
       el.style.border = "";
       el.title = "";
-      return null;
-    }
-    if (!validator(val)) {
-      el.style.border = "2px solid red";
-      el.title = "Недопустимое значение";
-      return false;
-    }
-    el.style.border = "";
-    el.title = "";
-    return val;
-  }
-
-  document.getElementById('authForm').addEventListener('submit', function (e) {
-    e.preventDefault();
-
-    const baseParams = {
-      client_id: document.getElementById('client_id').value,
-      redirect_uri: document.getElementById('redirect_uri').value,
-      scope: document.getElementById('scope').value,
-      state: document.getElementById('state').value,
-      nonce: document.getElementById('nonce').value,
-      response_type: document.getElementById('response_type').value,
-    };
-
-    const optionalParams = {};
-
-    const idTokenHint = validateAndGetValue('id_token_hint', v => typeof v === 'string');
-    const loginHint = validateAndGetValue('login_hint', v => typeof v === 'string');
-    const prompt = validateAndGetValue('prompt', isValidPrompt);
-    const maxAge = validateAndGetValue('max_age', isValidInteger);
-    const acrValues = validateAndGetValue('acr_values', v => typeof v === 'string');
-
-    if ([idTokenHint, loginHint, prompt, maxAge, acrValues].includes(false)) {
-      alert("Проверьте введённые значения");
-      return;
+      return val;
     }
 
-    if (idTokenHint) optionalParams.id_token_hint = idTokenHint;
-    if (loginHint) optionalParams.login_hint = loginHint;
-    if (prompt) optionalParams.prompt = prompt;
-    if (maxAge) optionalParams.max_age = maxAge;
-    if (acrValues) optionalParams.acr_values = acrValues;
+    document.getElementById('authForm').addEventListener('submit', function (e) {
+      e.preventDefault();
 
-    const query = new URLSearchParams({ ...baseParams, ...optionalParams });
+      const baseParams = {
+        client_id: document.getElementById('client_id').value,
+        redirect_uri: document.getElementById('redirect_uri').value,
+        scope: document.getElementById('scope').value,
+        state: document.getElementById('state').value,
+        nonce: document.getElementById('nonce').value,
+        response_type: document.getElementById('response_type').value,
+      };
 
-    let hydraPort;
-    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
-      hydraPort = 4444;
-    } else {
-      hydraPort = 3001;
-    }
+      const optionalParams = {};
 
-    const fullUrl = `${window.location.protocol}//${window.location.hostname}:${hydraPort}/oauth2/auth?${query.toString()}`;
-    window.location.href = fullUrl;
-  });
+      const idTokenHint = validateAndGetValue('id_token_hint', v => typeof v === 'string');
+      const loginHint = validateAndGetValue('login_hint', v => typeof v === 'string');
+      const prompt = validateAndGetValue('prompt', isValidPrompt);
+      const maxAge = validateAndGetValue('max_age', isValidInteger);
+      const acrValues = validateAndGetValue('acr_values', v => typeof v === 'string');
 
-  function generateUUIDv4() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-      const r = (crypto.getRandomValues(new Uint8Array(1))[0] & 15) >> 0;
-      const v = c === 'x' ? r : (r & 0x3 | 0x8);
-      return v.toString(16);
+      if ([idTokenHint, loginHint, prompt, maxAge, acrValues].includes(false)) {
+        alert("Проверьте введённые значения");
+        return;
+      }
+
+      if (idTokenHint) optionalParams.id_token_hint = idTokenHint;
+      if (loginHint) optionalParams.login_hint = loginHint;
+      if (prompt) optionalParams.prompt = prompt;
+      if (maxAge) optionalParams.max_age = maxAge;
+      if (acrValues) optionalParams.acr_values = acrValues;
+
+      const query = new URLSearchParams({ ...baseParams, ...optionalParams });
+
+      let hydraPort;
+      if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+        hydraPort = 4444;
+      } else {
+        hydraPort = 3001;
+      }
+
+      const fullUrl = `${window.location.protocol}//${window.location.hostname}:${hydraPort}/oauth2/auth?${query.toString()}`;
+      window.location.href = fullUrl;
     });
-  }
 
-  document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('state').value = generateUUIDv4();
-    document.getElementById('nonce').value = generateUUIDv4();
-    loadClients();
-  });
+    function generateUUIDv4() {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = (crypto.getRandomValues(new Uint8Array(1))[0] & 15) >> 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('state').value = generateUUIDv4();
+      document.getElementById('nonce').value = generateUUIDv4();
+      loadClients();
+    });
 </script>
 </body>
 </html>

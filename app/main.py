@@ -1,6 +1,6 @@
 import httpx
 from fastapi import FastAPI
-from fastapi.responses import FileResponse, Response
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.api import login, logout, consent, redirect

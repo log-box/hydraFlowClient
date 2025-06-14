@@ -57,6 +57,7 @@ async def login_process(data: LoginFormSubmitData):
             }
         )
         logger.info(f"Redirect error: {data.error}, description: {data.error_description}")
+        response.raise_for_status()
         return {"redirect_url": response.json()["redirect_to"]}
 
     missing = []

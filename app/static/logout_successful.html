@@ -1,79 +1,118 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Выход выполнен</title>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      font-family: "Segoe UI", Roboto, sans-serif;
-      background: linear-gradient(145deg, #f0f4f8, #ffffff);
-      color: #2c3e50;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-    }
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <title>Выход выполнен</title>
+    <style>
+        :root {
+          --bg-gradient: linear-gradient(145deg, #f0f4f8, #ffffff);
+          --text-color: #2c3e50;
+          --container-bg: #fff;
+          --border-color: #e0e6ed;
+          --shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+          --accent-color: #007bff;
+          --accent-hover: #0056b3;
+          --secondary-text: #555;
+          --footer-color: #999;
+        }
 
-    .container {
-      background: white;
-      border: 1px solid #e0e6ed;
-      border-radius: 12px;
-      padding: 2rem 1rem;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
-      text-align: center;
-      max-width: 420px;
-      width: 90%;
-    }
+        * {
+          box-sizing: border-box;
+        }
 
-    .icon {
-      width: 72px;
-      height: 72px;
-      margin-bottom: 1rem;
-    }
+        html, body {
+          margin: 0;
+          padding: 0;
+          font-family: "Segoe UI", Roboto, sans-serif;
+          background: var(--bg-gradient);
+          color: var(--text-color);
+          min-height: 100vh;
+          display: block;
+        }
 
-    h1 {
-      font-size: 1.6rem;
-      margin-bottom: 0.5rem;
-    }
+        body {
+          padding: 2rem 1rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
 
-    p {
-      font-size: 1rem;
-      color: #555;
-      margin-bottom: 1.5rem;
-    }
+        .container {
+          background: var(--container-bg);
+          border: 1px solid var(--border-color);
+          border-radius: 12px;
+          padding: 2rem 1.25rem;
+          box-shadow: var(--shadow);
+          text-align: center;
+          max-width: 420px;
+          width: 100%;
+        }
 
-    .button {
-      display: inline-block;
-      padding: 0.6rem 1.2rem;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-size: 0.95rem;
-      text-decoration: none;
-      cursor: pointer;
-      transition: background 0.2s ease-in-out;
-    }
+        .icon {
+          width: 72px;
+          height: 72px;
+          margin-bottom: 1rem;
+        }
 
-    .button:hover {
-      background: #0056b3;
-    }
+        h1 {
+          font-size: 1.6rem;
+          margin-bottom: 0.5rem;
+        }
 
-    .footer {
-      margin-top: 2rem;
-      font-size: 0.8rem;
-      color: #999;
-    }
-  </style>
+        p {
+          font-size: 1rem;
+          color: var(--secondary-text);
+          margin-bottom: 1.5rem;
+        }
+
+        .button {
+          display: inline-block;
+          padding: 0.6rem 1.2rem;
+          background: var(--accent-color);
+          color: white;
+          border: none;
+          border-radius: 6px;
+          font-size: 0.95rem;
+          text-decoration: none;
+          cursor: pointer;
+          transition: background 0.2s ease-in-out;
+        }
+
+        .button:hover {
+          background: var(--accent-hover);
+        }
+
+        .footer {
+          margin-top: 2rem;
+          font-size: 0.8rem;
+          color: var(--footer-color);
+        }
+
+        @media (max-width: 480px) {
+          h1 {
+            font-size: 1.3rem;
+          }
+
+          p {
+            font-size: 0.95rem;
+          }
+
+          .button {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+          }
+        }
+    </style>
+
 </head>
 <body>
-  <div class="container">
-    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#28a745" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M9 11l3 3L22 4"></path>
-      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+<div class="container">
+    <svg class="icon" fill="none" stroke="#28a745" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+         viewBox="0 0 24 24">
+        <path d="M9 11l3 3L22 4"></path>
+        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
     </svg>
 
     <h1>Вы успешно вышли</h1>
@@ -82,26 +121,26 @@
     <button class="button" id="redirectBtn">Вернуться</button>
 
     <div class="footer">
-      OAuth2 Identity Service • Powered by <strong>Hydra</strong>
+        OAuth2 Identity Service • Powered by <strong>Hydra</strong>
     </div>
-  </div>
+</div>
 
 <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("redirectBtn").addEventListener("click", function () {
-      const host = window.location.hostname;
-      let baseUrl;
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("redirectBtn").addEventListener("click", function () {
+        const host = window.location.hostname;
+        let baseUrl;
 
-      if (host === "192.168.88.5") {
-        baseUrl = "http://192.168.88.5:3001/";
-      } else if (host === "logbox.myddns.me") {
-        baseUrl = "http://logbox.myddns.me:3001/";
-      } else {
-        baseUrl = "http://localhost:3000/";
-      }
-          window.location.href = baseUrl;
+        if (host === "192.168.88.5") {
+          baseUrl = "http://192.168.88.5:3001/";
+        } else if (host === "logbox.myddns.me") {
+          baseUrl = "http://logbox.myddns.me:3001/";
+        } else {
+          baseUrl = "http://localhost:3000/";
+        }
+            window.location.href = baseUrl;
+          });
         });
-      });
 </script>
 
 </body>

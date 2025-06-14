@@ -1,5 +1,0 @@
-2025-06-09 02:45:39,310 | INFO | initClients | redirect_uris: ['http://localhost:3000/redirect-uri', 'http://localhost:3000/redirect-uri-second', 'http://127.0.0.1:3000/redirect-uri-second', 'http://127.0.0.1:3000/redirect-uri', 'http://192.168.88.5:3000/redirect-uri', 'http://192.168.88.5:3000/redirect-uri-second']
-2025-06-09 02:45:39,310 | INFO | initClients | allowed_cors_origins: []
-2025-06-09 02:45:39,327 | INFO | initClients | Зарегистрирован клиент client_q4p39aow для scope: openid offline
-2025-06-09 02:45:39,333 | INFO | initClients | Зарегистрирован клиент client_016zct8q для scope: openid offline usss
-2025-06-09 02:45:39,338 | INFO | initClients | Зарегистрирован клиент client_510xsolx для scope: openid offline usss oatc

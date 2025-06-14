@@ -1,8 +1,9 @@
 import httpx
+import jwt
 from fastapi import HTTPException, APIRouter, Request
 from fastapi.responses import FileResponse, JSONResponse
-import jwt
 from jwt import InvalidTokenError
+
 from app.config import settings
 from app.logger import logger
 from app.schemas import LogoutPayload

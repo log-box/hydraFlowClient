@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import json
-import urllib.error
-import urllib.request
-import urllib.parse
 import random
 import string
+import urllib.error
+import urllib.parse
+import urllib.request
 
 
 def generate_client_name(prefix="Client_", length=8):
@@ -101,7 +101,7 @@ def main():
     data = json.dumps(client_json).encode('utf-8')
     headers = {"Content-Type": "application/json"}
 
-    result = post_json_with_redirect("http://localhost:4445/admin/clients", data, headers)
+    result = post_json_with_redirect("http://hydra:4445/admin/clients", data, headers)
     print("Client created:", result.decode())
 
 

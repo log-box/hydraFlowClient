@@ -1,160 +1,203 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Login challenge stage</title>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      font-family: "Segoe UI", Roboto, sans-serif;
-      background: linear-gradient(145deg, #f0f4f8, #ffffff);
-      color: #2c3e50;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
-    }
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <title>Login challenge stage</title>
+    <style>
+        :root {
+          --bg-gradient: linear-gradient(145deg, #f0f4f8, #ffffff);
+          --text-color: #2c3e50;
+          --accent-color: #007bff;
+          --accent-hover: #0056b3;
+          --border-color: #e0e6ed;
+          --code-bg: #f0f0f0;
+          --success-bg: #f5fff5;
+          --success-border: #28a745;
+        }
 
-    .container {
-      background: white;
-      border: 1px solid #e0e6ed;
-      border-radius: 12px;
-      padding: 2rem 1rem;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
-      width: 100%;
-      max-width: 720px;
-      margin-top: 3vh;
-    }
+        * {
+          box-sizing: border-box;
+        }
 
-    h2 {
-      font-size: 1.4rem;
-      margin-bottom: 1rem;
-      text-align: center;
-    }
+        html, body {
+          margin: 0;
+          padding: 0;
+          font-family: "Segoe UI", Roboto, sans-serif;
+          background: var(--bg-gradient);
+          color: var(--text-color);
+          min-height: 100vh;
+          display: block;
+          line-height: 1.5;
+        }
 
-    form label {
-      display: block;
-      margin-top: 1rem;
-      font-weight: 500;
-    }
+        .container {
+          max-width: 720px;
+          width: 100%;
+          margin: 3vh auto;
+          background: white;
+          border: 1px solid var(--border-color);
+          border-radius: 12px;
+          padding: 2rem 1.25rem;
+          box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+        }
 
-    input[type="text"],
-    input[type="number"] {
-      width: 100%;
-      padding: 0.6rem;
-      margin-top: 0.4rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 1rem;
-    }
+        h2 {
+          font-size: 1.4rem;
+          margin-bottom: 1rem;
+          text-align: center;
+        }
 
-    input[type="checkbox"] {
-      margin-right: 0.5rem;
-    }
+        form label {
+          display: block;
+          margin-top: 1rem;
+          font-weight: 500;
+        }
 
-    .button-group {
-      margin-top: 2rem;
-      display: flex;
-      justify-content: flex-end;
-      gap: 1rem;
-    }
+        input[type="text"],
+        input[type="number"] {
+          width: 100%;
+          padding: 0.6rem;
+          margin-top: 0.4rem;
+          border: 1px solid #ccc;
+          border-radius: 6px;
+          font-size: 1rem;
+        }
 
-    button {
-      padding: 0.6rem 1.2rem;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 1rem;
-    }
+        input[type="checkbox"] {
+          margin-right: 0.5rem;
+        }
 
-    button:hover {
-      background-color: #0056b3;
-    }
+        .button-group {
+          margin-top: 2rem;
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: flex-end;
+          gap: 1rem;
+        }
 
-    summary {
-      font-weight: bold;
-      cursor: pointer;
-      margin-top: 1.5rem;
-    }
+        button {
+          padding: 0.6rem 1.2rem;
+          background-color: var(--accent-color);
+          color: white;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          font-size: 1rem;
+          transition: background 0.2s;
+        }
 
-    details pre {
-      margin: 0.5rem 0 0 0;
-      white-space: pre-wrap;
-      word-break: break-word;
-      background: #f0f0f0;
-      padding: 1em;
-      border-radius: 5px;
-      max-height: 400px;
-      overflow: auto;
-      font-size: 0.85em;
-    }
+        button:hover {
+          background-color: var(--accent-hover);
+        }
 
-    #activeSessionBlock {
-      background: #f5fff5;
-      border-left: 4px solid #28a745;
-      padding: 1rem;
-      border-radius: 8px;
-      margin-top: 2em;
-    }
+        summary {
+          font-weight: bold;
+          cursor: pointer;
+          margin-top: 1.5rem;
+        }
 
-    #activeSessionBlock h3 {
-      margin-top: 0;
-    }
-  </style>
+        details pre {
+          margin-top: 0.5rem;
+          white-space: pre-wrap;
+          word-break: break-word;
+          background: var(--code-bg);
+          padding: 1em;
+          border-radius: 6px;
+          max-height: 400px;
+          overflow: auto;
+          font-size: 0.85em;
+        }
+
+        #activeSessionBlock {
+          background: var(--success-bg);
+          border-left: 4px solid var(--success-border);
+          padding: 1rem;
+          border-radius: 8px;
+          margin-top: 2em;
+          overflow-x: auto;
+        }
+
+        #activeSessionBlock h3 {
+          margin-top: 0;
+        }
+
+        /* Адаптивные правки */
+        @media (max-width: 600px) {
+          .container {
+            padding: 1.5rem 1rem;
+            border-radius: 8px;
+          }
+
+          h2 {
+            font-size: 1.2rem;
+          }
+
+          .button-group {
+            flex-direction: column;
+            align-items: stretch;
+          }
+
+          button {
+            width: 100%;
+          }
+
+          details pre {
+            font-size: 0.8rem;
+          }
+        }
+    </style>
+
 </head>
 <body>
 <div class="container">
-  <h2>Вход в систему</h2>
-  <form id="loginForm">
-    <label>Subject
-      <input name="subject" placeholder="user-uuid-1234" type="text">
-    </label>
-    <label>Credential
-      <input name="credential" placeholder="например, +79200631679" type="text">
-    </label>
-    <label>ACR
-      <input name="acr" placeholder="напр. login_password или OTP" type="text">
-    </label>
-    <label>AMR
-      <input name="amr" placeholder="напр. OAUTH2,exchange" type="text">
-    </label>
-    <label>Context
-      <input data-json data-json-object name="context"
-             placeholder='{"app": "frontend", "env": "dev"}'>
-    </label>
-    <label><input name="extend_session_lifespan" type="checkbox"> Продлить срок сессии</label>
-    <label><input name="remember" type="checkbox"> Запомнить пользователя</label>
-    <label>Запомнить на (секунды)
-      <input name="remember_for" placeholder="3600" type="number">
-    </label>
-    <label>Error (для отказа)
-      <input name="error" placeholder="например, login_required" type="text">
-    </label>
-    <label>Error Description
-      <input name="error_description" placeholder="например, Пользователь отменил вход" type="text">
-    </label>
-    <input name="login_challenge" type="hidden" value="">
-    <input name="session_id" type="hidden" value="">
+    <h2>Вход в систему</h2>
+    <form id="loginForm">
+        <label>Subject
+            <input name="subject" placeholder="user-uuid-1234" type="text">
+        </label>
+        <label>Credential
+            <input name="credential" placeholder="например, +79200631679" type="text">
+        </label>
+        <label>ACR
+            <input name="acr" placeholder="напр. login_password или OTP" type="text">
+        </label>
+        <label>AMR
+            <input name="amr" placeholder="напр. OAUTH2,exchange" type="text">
+        </label>
+        <label>Context
+            <input data-json data-json-object name="context"
+                   placeholder='{"app": "frontend", "env": "dev"}'>
+        </label>
+        <label><input name="extend_session_lifespan" type="checkbox"> Продлить срок сессии</label>
+        <label><input name="remember" type="checkbox"> Запомнить пользователя</label>
+        <label>Запомнить на (секунды)
+            <input name="remember_for" placeholder="3600" type="number">
+        </label>
+        <label>Error (для отказа)
+            <input name="error" placeholder="например, login_required" type="text">
+        </label>
+        <label>Error Description
+            <input name="error_description" placeholder="например, Пользователь отменил вход" type="text">
+        </label>
+        <input name="login_challenge" type="hidden" value="">
+        <input name="session_id" type="hidden" value="">
 
-    <div class="button-group">
-      <button onclick="onSubmit(false)" type="button">Отмена</button>
-      <button onclick="onSubmit(true)" type="button">Войти</button>
-    </div>
+        <div class="button-group">
+            <button onclick="onSubmit(false)" type="button">Отмена</button>
+            <button onclick="onSubmit(true)" type="button">Войти</button>
+        </div>
 
-    <details>
-      <summary>Детали get loginChallenge (техническое)</summary>
-      <pre id="loginRequestJson"></pre>
-    </details>
+        <details>
+            <summary>Детали get loginChallenge (техническое)</summary>
+            <pre id="loginRequestJson"></pre>
+        </details>
 
-    <div id="activeSessionBlock" style="display: none;">
-      <h3>⚡ Значения подгружены из активной сессии</h3>
-      <pre id="activeSessionInfoJson"></pre>
-    </div>
-  </form>
+        <div id="activeSessionBlock" style="display: none;">
+            <h3>⚡ Значения подгружены из активной сессии</h3>
+            <pre id="activeSessionInfoJson"></pre>
+        </div>
+    </form>
 </div>
 
 <script>

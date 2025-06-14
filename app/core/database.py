@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine, MetaData, select, desc, func, and_
 from sqlalchemy.orm import sessionmaker
 from tenacity import retry, wait_fixed, stop_after_delay, retry_if_exception_type
+
 from app.logger import logger
 
 
@@ -22,6 +23,7 @@ Session = sessionmaker(bind=engine)
 
 
 class FlowTableNotReady(Exception): pass
+
 
 @retry(
     wait=wait_fixed(2),

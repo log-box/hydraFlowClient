@@ -4,124 +4,169 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Результат авторизации</title>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      font-family: "Segoe UI", Roboto, sans-serif;
-      background: linear-gradient(145deg, #f0f4f8, #ffffff);
-      color: #2c3e50;
-      display: flex;
-      justify-content: center;
-      min-height: 100vh;
-    }
+<style>
+  :root {
+    --bg-gradient: linear-gradient(145deg, #f0f4f8, #ffffff);
+    --text-color: #2c3e50;
+    --container-bg: #fff;
+    --border-color: #e0e6ed;
+    --shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+    --accent-color: #007bff;
+    --accent-hover: #0056b3;
+    --success-color: #28a745;
+    --fail-color: #dc3545;
+    --code-bg: #f0f0f0;
+  }
 
-    .container {
-      max-width: 1000px;
-      margin: 2rem;
-      background: #fff;
-      padding: 2rem 1rem;
-      border: 1px solid #e0e6ed;
-      border-radius: 12px;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
-      width: 100%;
-    }
+  * {
+    box-sizing: border-box;
+  }
 
-    h2, h3 {
-      text-align: center;
-    }
+  html, body {
+    margin: 0;
+    padding: 0;
+    font-family: "Segoe UI", Roboto, sans-serif;
+    background: var(--bg-gradient);
+    color: var(--text-color);
+  }
 
-    pre {
-      background: #f0f0f0;
-      padding: 1em;
-      border-radius: 5px;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-      font-size: 0.95rem;
-    }
+  .container {
+    max-width: 1000px;
+    width: 100%;
+    margin: 2rem auto;
+    background: var(--container-bg);
+    padding: 2rem 1.25rem;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+  }
 
-    .token-container {
-      display: flex;
+  h2, h3 {
+    text-align: center;
+    margin-top: 0;
+  }
+
+  pre {
+    background: var(--code-bg);
+    padding: 1em;
+    border-radius: 6px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-x: auto;
+    font-size: 0.9rem;
+    max-width: 100%;
+  }
+
+  .token-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .token-blocks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .token-section {
+    flex: 1 1 250px;
+    min-width: 250px;
+  }
+
+  .token-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .status {
+    font-size: 1rem;
+    font-weight: bold;
+  }
+
+  .status.success {
+    color: var(--success-color);
+  }
+
+  .status.fail {
+    color: var(--fail-color);
+  }
+
+  button.copy {
+    margin-top: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    background: var(--accent-color);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+    width: 100%;
+  }
+
+  button.copy:hover {
+    background: var(--accent-hover);
+  }
+
+  form {
+    margin-top: 2rem;
+  }
+
+  form label {
+    display: block;
+    margin-top: 1rem;
+    font-weight: 500;
+  }
+
+  form input[type="text"],
+  form select {
+    width: 100%;
+    padding: 0.6rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    margin-top: 0.3rem;
+  }
+
+  form button[type="submit"] {
+    margin-top: 1.2rem;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+    width: 100%;
+  }
+
+  form button[type="submit"]:hover {
+    background-color: var(--accent-hover);
+  }
+
+  @media (max-width: 600px) {
+    .token-header {
       flex-direction: column;
-      gap: 2rem;
+      align-items: flex-start;
     }
 
     .token-blocks {
-      display: flex;
-      flex-direction: row;
-      gap: 1rem;
-      flex-wrap: wrap;
+      flex-direction: column;
     }
 
-    .token-section {
-      flex: 1;
-      min-width: 250px;
-    }
-
-    .token-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .status {
-      font-size: 1.2rem;
-      font-weight: bold;
-    }
-
-    .status.success {
-      color: #28a745;
-    }
-
-    .status.fail {
-      color: #dc3545;
-    }
-
-    button.copy {
-      margin-top: 0.5rem;
-      padding: 0.4rem 0.8rem;
+    pre {
       font-size: 0.85rem;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
     }
+  }
+</style>
 
-    form {
-      margin-top: 2rem;
-    }
 
-    form select,
-    form input[type="text"] {
-      width: 100%;
-      padding: 0.6rem;
-      font-size: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
 
-    form button[type="submit"] {
-      margin-top: 1rem;
-      padding: 0.75rem 1.2rem;
-      font-size: 1rem;
-      background-color: #007BFF;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    form button:hover {
-      background-color: #0056b3;
-    }
-
-    form label {
-      font-weight: 500;
-      margin-top: 1rem;
-      display: block;
-    }
-  </style>
 </head>
 <body>
   <div class="container">
@@ -190,14 +235,18 @@
     </div>
   </div>
 
-  <script>
-    function copyToClipboard(id) {
-      const text = document.getElementById(id).innerText;
-      navigator.clipboard.writeText(text).then(() => {
-        alert("Скопировано!");
-      });
-    }
-  </script>
+<script>
+  function copyToClipboard(id) {
+    const el = document.createElement("textarea");
+    el.value = document.getElementById(id).innerText;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand("copy");
+    document.body.removeChild(el);
+    alert("Скопировано!");
+  }
+</script>
+
 
   <script>
     function rewriteLogoutAction() {
