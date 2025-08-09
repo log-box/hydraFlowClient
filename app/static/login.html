@@ -1,216 +1,349 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta content="width=device-width, initial-scale=1" name="viewport">
-    <title>Login challenge stage</title>
-    <style>
-        :root {
-          --bg-gradient: linear-gradient(145deg, #f0f4f8, #ffffff);
-          --text-color: #2c3e50;
-          --accent-color: #007bff;
-          --accent-hover: #0056b3;
-          --border-color: #e0e6ed;
-          --code-bg: #f0f0f0;
-          --success-bg: #f5fff5;
-          --success-border: #28a745;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login challenge stage</title>
+  <style>
+    :root {
+      --bg-gradient: radial-gradient(1200px 600px at 10% -10%, #eef4ff 0%, #ffffff 40%),
+        linear-gradient(145deg, #f7f9fc, #ffffff);
+      --card-bg: #ffffff;
+      --text-color: #1f2a37;
+      --muted-color: #6b7280;
+      --accent-color: #2563eb;
+      --accent-hover: #1e40af;
+      --border-color: #e5e7eb;
+      --ring: rgba(37, 99, 235, 0.2);
+      --code-bg: #0b1220;
+      --code-fg: #e5edff;
+      --success-bg: #f0fdf4;
+      --success-border: #22c55e;
+      --warn-bg: #fff7ed;
+      --warn-border: #f59e0b;
+      --shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+    }
 
-        * {
-          box-sizing: border-box;
-        }
+    * { box-sizing: border-box; }
 
-        html, body {
-          margin: 0;
-          padding: 0;
-          font-family: "Segoe UI", Roboto, sans-serif;
-          background: var(--bg-gradient);
-          color: var(--text-color);
-          min-height: 100vh;
-          display: block;
-          line-height: 1.5;
-        }
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: var(--bg-gradient);
+      color: var(--text-color);
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      min-height: 100vh;
+    }
 
-        .container {
-          max-width: 720px;
-          width: 100%;
-          margin: 3vh auto;
-          background: white;
-          border: 1px solid var(--border-color);
-          border-radius: 12px;
-          padding: 2rem 1.25rem;
-          box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
-        }
+    .wrap { padding: 32px 16px; }
 
-        h2 {
-          font-size: 1.4rem;
-          margin-bottom: 1rem;
-          text-align: center;
-        }
+    .container {
+      max-width: 840px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
 
-        form label {
-          display: block;
-          margin-top: 1rem;
-          font-weight: 500;
-        }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-color);
+      background: linear-gradient(180deg, rgba(37, 99, 235, 0.06), transparent);
+    }
 
-        input[type="text"],
-        input[type="number"] {
-          width: 100%;
-          padding: 0.6rem;
-          margin-top: 0.4rem;
-          border: 1px solid #ccc;
-          border-radius: 6px;
-          font-size: 1rem;
-        }
+    .title {
+      margin: 0;
+      font-size: 1.35rem;
+      letter-spacing: .2px;
+    }
 
-        input[type="checkbox"] {
-          margin-right: 0.5rem;
-        }
+    .badge {
+      font-size: 12px;
+      color: var(--muted-color);
+      background: #f3f4f6;
+      border: 1px solid var(--border-color);
+      padding: 6px 10px;
+      border-radius: 999px;
+    }
 
-        .button-group {
-          margin-top: 2rem;
-          display: flex;
-          flex-wrap: wrap;
-          justify-content: flex-end;
-          gap: 1rem;
-        }
+    .content { padding: 20px 24px 24px; }
 
-        button {
-          padding: 0.6rem 1.2rem;
-          background-color: var(--accent-color);
-          color: white;
-          border: none;
-          border-radius: 6px;
-          cursor: pointer;
-          font-size: 1rem;
-          transition: background 0.2s;
-        }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px 20px;
+    }
 
-        button:hover {
-          background-color: var(--accent-hover);
-        }
+    .full { grid-column: 1 / -1; }
 
-        summary {
-          font-weight: bold;
-          cursor: pointer;
-          margin-top: 1.5rem;
-        }
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
 
-        details pre {
-          margin-top: 0.5rem;
-          white-space: pre-wrap;
-          word-break: break-word;
-          background: var(--code-bg);
-          padding: 1em;
-          border-radius: 6px;
-          max-height: 400px;
-          overflow: auto;
-          font-size: 0.85em;
-        }
+    .hint {
+      display: block;
+      font-size: 12px;
+      color: var(--muted-color);
+      margin-top: 6px;
+    }
 
-        #activeSessionBlock {
-          background: var(--success-bg);
-          border-left: 4px solid var(--success-border);
-          padding: 1rem;
-          border-radius: 8px;
-          margin-top: 2em;
-          overflow-x: auto;
-        }
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      font-size: 0.975rem;
+      transition: box-shadow .15s ease, border-color .15s ease;
+      background: #fff;
+    }
 
-        #activeSessionBlock h3 {
-          margin-top: 0;
-        }
+    input[type="text"]:focus,
+    input[type="number"]:focus {
+      outline: none;
+      border-color: var(--accent-color);
+      box-shadow: 0 0 0 4px var(--ring);
+    }
 
-        /* Адаптивные правки */
-        @media (max-width: 600px) {
-          .container {
-            padding: 1.5rem 1rem;
-            border-radius: 8px;
-          }
+    .row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
 
-          h2 {
-            font-size: 1.2rem;
-          }
+    .check {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border: 1px dashed var(--border-color);
+      border-radius: 10px;
+    }
 
-          .button-group {
-            flex-direction: column;
-            align-items: stretch;
-          }
+    .button-group {
+      margin-top: 18px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 12px;
+    }
 
-          button {
-            width: 100%;
-          }
+    button {
+      padding: 10px 16px;
+      background: var(--accent-color);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 600;
+      transition: transform .06s ease, background .15s ease;
+    }
 
-          details pre {
-            font-size: 0.8rem;
-          }
-        }
-    </style>
+    button:hover { background: var(--accent-hover); }
+    button:active { transform: translateY(1px); }
 
+    .btn-ghost {
+      background: #eef2ff;
+      color: #1e3a8a;
+    }
+    .btn-ghost:hover { background: #e0e7ff; }
+
+    details {
+      margin-top: 18px;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 12px 14px;
+      background: #f8fafc;
+      border-bottom: 1px solid var(--border-color);
+      font-weight: 700;
+    }
+    summary::-webkit-details-marker { display: none; }
+
+    details pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: var(--code-bg);
+      color: var(--code-fg);
+      padding: 14px 16px;
+      max-height: 420px;
+      overflow: auto;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    #activeSessionBlock {
+      background: var(--success-bg);
+      border: 1px solid var(--success-border);
+      padding: 14px;
+      border-radius: 14px;
+      margin-top: 20px;
+      overflow-x: auto;
+    }
+
+    #activeSessionBlock h3 { margin: 0 0 8px; }
+
+    .meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px 16px;
+      margin-top: 8px;
+      color: var(--muted-color);
+      font-size: 12px;
+    }
+
+    .kv { display: contents; }
+    .k { font-weight: 600; }
+
+    .divider { height: 1px; background: var(--border-color); margin: 16px 0; }
+
+    @media (max-width: 720px) {
+      .grid { grid-template-columns: 1fr; }
+      .meta { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
-<div class="container">
-    <h2>Вход в систему</h2>
-    <form id="loginForm">
-        <label>Subject
-            <input name="subject" placeholder="user-uuid-1234" type="text">
-        </label>
-        <label>Credential
-            <input name="credential" placeholder="например, +79200631679" type="text">
-        </label>
-        <label>ACR
-            <input name="acr" placeholder="напр. login_password или OTP" type="text">
-        </label>
-        <label>AMR
-            <input name="amr" placeholder="напр. OAUTH2,exchange" type="text">
-        </label>
-        <label>Context
-            <input data-json data-json-object name="context"
-                   placeholder='{"app": "frontend", "env": "dev"}'>
-        </label>
-        <label><input name="extend_session_lifespan" type="checkbox"> Продлить срок сессии</label>
-        <label><input name="remember" type="checkbox"> Запомнить пользователя</label>
-        <label>Запомнить на (секунды)
-            <input name="remember_for" placeholder="3600" type="number">
-        </label>
-        <label>Error (для отказа)
-            <input name="error" placeholder="например, login_required" type="text">
-        </label>
-        <label>Error Description
-            <input name="error_description" placeholder="например, Пользователь отменил вход" type="text">
-        </label>
-        <input name="login_challenge" type="hidden" value="">
-        <input name="session_id" type="hidden" value="">
+  <div class="wrap">
+    <div class="container">
+      <div class="header">
+        <h1 class="title">Вход в систему (Login challenge)</h1>
+        <span class="badge" id="challengeBadge" title="Текущий login_challenge">challenge: —</span>
+      </div>
 
-        <div class="button-group">
-            <button onclick="onSubmit(false)" type="button">Отмена</button>
-            <button onclick="onSubmit(true)" type="button">Войти</button>
-        </div>
+      <div class="content">
+        <form id="loginForm">
+          <div class="grid">
+            <div class="full">
+              <div class="meta" aria-hidden="true">
+                <div class="kv"><div class="k">Шаг</div><div>Аутентификация пользователя в потоке OAuth2/OIDC (Hydra)</div></div>
+                <div class="kv"><div class="k">Назначение</div><div>Смоделировать ответ login-узла для Hydra (accept/deny)</div></div>
+              </div>
+              <div class="divider"></div>
+            </div>
 
-        <details>
-            <summary>Детали get loginChallenge (техническое)</summary>
-            <pre id="loginRequestJson"></pre>
-        </details>
+            <div>
+              <label for="subject">Subject</label>
+              <input id="subject" name="subject" type="text" placeholder="user-uuid-1234" autocomplete="username" />
+              <small class="hint">Уникальный идентификатор пользователя (<code>sub</code>). Не e‑mail/телефон, а стабильный ID.</small>
+            </div>
 
-        <div id="activeSessionBlock" style="display: none;">
-            <h3>⚡ Значения подгружены из активной сессии</h3>
-            <pre id="activeSessionInfoJson"></pre>
-        </div>
-    </form>
-</div>
+            <div>
+              <label for="credential">Credential</label>
+              <input id="credential" name="credential" type="text" placeholder="например, +79200631679" inputmode="text" autocomplete="one-time-code" />
+              <small class="hint">Чем пользователь идентифицировался (телефон/e‑mail/логин и т. п.).</small>
+            </div>
 
-<script>
+            <div>
+              <label for="acr">ACR</label>
+              <input id="acr" name="acr" type="text" placeholder="напр. login_password или OTP" />
+              <small class="hint">ACR (Authentication Context Class Reference) — контекст аутентификации на момент выдачи токена. Примеры: <code>usss_login</code>, <code>idp_login</code>, <code>phone_auth</code>, <code>mobile_network</code>, <code>external_oidc</code>, <code>winaccount_auth</code>, <code>token_exchange_phone</code>.</small>
+            </div>
+
+            <div>
+              <label for="amr">AMR</label>
+              <input id="amr" name="amr" type="text" placeholder="напр. OAUTH2,exchange" />
+              <small class="hint">AMR (Authentication Methods Reference) — фактические сценарии в рамках логин-сессии, которые проходил пользователь. Возможные значения: <code>EXCHANGE</code>, <code>IMPERSONATION</code>, <code>DOKIMPERSONATION</code>, <code>SMOOTH_TRANSITION</code>, <code>XBR</code>, <code>MOBILE_ID</code>, <code>OTP_MOBILE_ID</code>, <code>LOGIN_PASSWORD</code>, <code>OIDC</code>, <code>TOKEN_EXCHANGE</code>.</small>
+            </div>
+
+            <div class="full">
+              <label for="context">Context</label>
+              <input id="context" name="context" data-json data-json-object placeholder='{"app":"frontend","env":"dev"}' />
+              <small class="hint">Произвольные данные контекста в формате JSON‑объекта. Поле валидируется на лету.</small>
+            </div>
+
+            <div class="row full">
+              <div class="check">
+                <input id="extend_session_lifespan" name="extend_session_lifespan" type="checkbox" />
+                <label for="extend_session_lifespan" style="font-weight:600;">Продлить срок сессии</label>
+              </div>
+              <small class="hint">Если установлено, сервер может продлить TTL текущей сессии пользователя без повторного логина.</small>
+              <div class="check">
+                <input id="remember" name="remember" type="checkbox" />
+                <label for="remember" style="font-weight:600;">Запомнить пользователя</label>
+              </div>
+              <small class="hint">При включении — запоминает пользователя на заданное время (<code>remember_for</code>), чтобы пропустить логин при следующем заходе.</small>
+              <div style="flex:1 1 220px; min-width: 220px;">
+                <label for="remember_for">Запомнить на (секунды)</label>
+                <input id="remember_for" name="remember_for" type="number" placeholder="3600" inputmode="numeric" />
+                <small class="hint">TTL для remember. 3600 = 1 час.</small>
+              </div>
+            </div>
+
+            <div class="full" style="margin-top:4px;">
+              <details>
+                <summary>Отказ от входа (ошибка)</summary>
+                <div style="padding: 12px 14px; background:#fff;">
+                  <div class="grid">
+                    <div>
+                      <label for="error">Error</label>
+                      <input id="error" name="error" type="text" placeholder="например, login_required" />
+                      <small class="hint">Код ошибки OAuth2/OIDC для отказа (например, <code>access_denied</code>).</small>
+                    </div>
+                    <div>
+                      <label for="error_description">Error Description</label>
+                      <input id="error_description" name="error_description" type="text" placeholder="например, Пользователь отменил вход" />
+                      <small class="hint">Человекочитаемое описание отказа.</small>
+                    </div>
+                  </div>
+                </div>
+              </details>
+            </div>
+
+            <input name="login_challenge" type="hidden" value="" />
+            <input name="session_id" type="hidden" value="" />
+
+            <div class="button-group full">
+              <button type="button" class="btn-ghost" onclick="onSubmit(false)" title="Отказать и вернуть ошибку в Hydra">Отмена</button>
+              <button type="button" onclick="onSubmit(true)" title="Принять и продолжить поток авторизации">Войти</button>
+            </div>
+
+            <div class="full">
+              <details>
+                <summary>Детали get loginChallenge (техническое)</summary>
+                <pre id="loginRequestJson"></pre>
+              </details>
+
+              <div id="activeSessionBlock" style="display:none;">
+                <h3>⚡ Значения подгружены из активной сессии</h3>
+                <pre id="activeSessionInfoJson"></pre>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
     function getQueryParam(name) {
       const urlParams = new URLSearchParams(window.location.search);
       return urlParams.get(name);
     }
 
-
-
     async function loadSettings() {
       try {
         const challenge = getQueryParam("login_challenge");
+        const badge = document.getElementById("challengeBadge");
+        if (badge) badge.textContent = `challenge: ${challenge || "—"}`;
         if (!challenge) {
           alert("login_challenge не указан");
           return;
@@ -222,7 +355,6 @@
         const settingsData = await settingsRes.json();
         console.log("Получен session_id:", settingsData.session_id);
         form.elements["session_id"].value = settingsData.session_id;
-    <!--    form.elements.session_id.value = settingsData.session_id;-->
         // Проверка наличия сессионных данных
         if (settingsData.active_session_info) {
           document.getElementById("activeSessionBlock").style.display = "block";
@@ -234,7 +366,6 @@
         const loginRequestRes = await fetch(`/login_request_data?session_id=${settingsData.session_id}`);
         const loginRequestData = await loginRequestRes.json();
         document.getElementById("loginRequestJson").textContent = JSON.stringify(loginRequestData, null, 2);
-
 
         form.login_challenge.value = challenge;
 
@@ -254,7 +385,7 @@
           }
         }
 
-            document.querySelectorAll("input[data-json]").forEach(input => {
+        document.querySelectorAll("input[data-json]").forEach(input => {
           input.addEventListener("input", () => {
             const mustBeObject = input.hasAttribute("data-json-object");
             validateJsonField(input, mustBeObject);
@@ -269,9 +400,9 @@
     async function onSubmit(continueFlow) {
       const form = document.forms.loginForm;
       if (!validateAllJsonFields()) {
-      alert("Проверьте корректность JSON в выделенных полях");
-      return;
-    }
+        alert("Проверьте корректность JSON в выделенных полях");
+        return;
+      }
 
       if (!continueFlow) {
         const data = {
@@ -291,7 +422,7 @@
         if (res.ok) {
           const result = await res.json();
           if (result.redirect_url) {
-             redirectToFixedUrl(result.redirect_url);
+            redirectToFixedUrl(result.redirect_url);
           } else {
             alert('Отмена выполнена, но redirect_url отсутствует');
           }
@@ -303,22 +434,22 @@
         return;
       }
 
-        let context = {};
-        try {
-          const raw = form.context.value.trim();
-           if (!validateJsonInput(form['context'])) {
+      let context = {};
+      try {
+        const raw = form.context.value.trim();
+        if (!validateJsonInput(form['context'])) {
           alert("Ошибка: поле context заполнено некорректно.");
           return;
-          }
-
-          context = raw ? JSON.parse(raw) : {};
-          if (typeof context !== 'object' || Array.isArray(context) || context === null) {
-            throw new Error("context must be a JSON object");
-          }
-        } catch (e) {
-          alert('Ошибка в поле "context": ' + e.message);
-          return;
         }
+
+        context = raw ? JSON.parse(raw) : {};
+        if (typeof context !== 'object' || Array.isArray(context) || context === null) {
+          throw new Error("context must be a JSON object");
+        }
+      } catch (e) {
+        alert('Ошибка в поле "context": ' + e.message);
+        return;
+      }
 
       const data = {
         session_id: form.session_id.value,
@@ -335,7 +466,6 @@
         error: continueFlow ? null : form.error.value || "access_denied",
         error_description: continueFlow ? null : form.error_description.value || "Пользователь отменил вход"
       };
-
 
       try {
         const res = await fetch('/login_process', {
@@ -359,6 +489,7 @@
         alert('Ошибка отправки формы: ' + e.message);
       }
     }
+
     function validateJsonInput(input) {
       const value = input.value.trim();
       if (!value) return true;
@@ -376,6 +507,7 @@
         return false;
       }
     }
+
     function validateJsonField(input, mustBeObject = false) {
       const value = input.value.trim();
       if (!value) {
@@ -385,11 +517,9 @@
       }
       try {
         const parsed = JSON.parse(value);
-
         if (mustBeObject && (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed))) {
           throw new Error("Ожидается JSON-объект (не массив)");
         }
-
         input.style.border = "";
         input.title = "";
         return true;
@@ -403,21 +533,18 @@
     function validateAllJsonFields() {
       const jsonInputs = document.querySelectorAll("input[data-json]");
       let allValid = true;
-
       jsonInputs.forEach(input => {
         const mustBeObject = input.hasAttribute("data-json-object");
         const valid = validateJsonField(input, mustBeObject);
         if (!valid) allValid = false;
       });
-
       return allValid;
     }
+
     function redirectToFixedUrl(rawUrl) {
       const correctedPath = rawUrl.replace("http://localhost:4444/", "");
-
       const currentHost = window.location.hostname;
       let baseUrl;
-
       if (currentHost === "192.168.88.5") {
         baseUrl = "http://192.168.88.5:3001/";
       } else if (currentHost === "logbox.myddns.me") {
@@ -425,13 +552,11 @@
       } else {
         baseUrl = "http://localhost:4444/";
       }
-
       const correctedUrl = baseUrl + correctedPath;
       location.href = correctedUrl;
     }
 
     loadSettings();
-
-</script>
+  </script>
 </body>
 </html>

@@ -1,252 +1,189 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Результат авторизации</title>
-<style>
-  :root {
-    --bg-gradient: linear-gradient(145deg, #f0f4f8, #ffffff);
-    --text-color: #2c3e50;
-    --container-bg: #fff;
-    --border-color: #e0e6ed;
-    --shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
-    --accent-color: #007bff;
-    --accent-hover: #0056b3;
-    --success-color: #28a745;
-    --fail-color: #dc3545;
-    --code-bg: #f0f0f0;
-  }
-
-  * {
-    box-sizing: border-box;
-  }
-
-  html, body {
-    margin: 0;
-    padding: 0;
-    font-family: "Segoe UI", Roboto, sans-serif;
-    background: var(--bg-gradient);
-    color: var(--text-color);
-  }
-
-  .container {
-    max-width: 1000px;
-    width: 100%;
-    margin: 2rem auto;
-    background: var(--container-bg);
-    padding: 2rem 1.25rem;
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    box-shadow: var(--shadow);
-  }
-
-  h2, h3 {
-    text-align: center;
-    margin-top: 0;
-  }
-
-  pre {
-    background: var(--code-bg);
-    padding: 1em;
-    border-radius: 6px;
-    white-space: pre-wrap;
-    word-break: break-word;
-    overflow-x: auto;
-    font-size: 0.9rem;
-    max-width: 100%;
-  }
-
-  .token-container {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-  }
-
-  .token-blocks {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-  }
-
-  .token-section {
-    flex: 1 1 250px;
-    min-width: 250px;
-  }
-
-  .token-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .status {
-    font-size: 1rem;
-    font-weight: bold;
-  }
-
-  .status.success {
-    color: var(--success-color);
-  }
-
-  .status.fail {
-    color: var(--fail-color);
-  }
-
-  button.copy {
-    margin-top: 0.5rem;
-    padding: 0.5rem 1rem;
-    font-size: 0.85rem;
-    background: var(--accent-color);
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background 0.2s;
-    width: 100%;
-  }
-
-  button.copy:hover {
-    background: var(--accent-hover);
-  }
-
-  form {
-    margin-top: 2rem;
-  }
-
-  form label {
-    display: block;
-    margin-top: 1rem;
-    font-weight: 500;
-  }
-
-  form input[type="text"],
-  form select {
-    width: 100%;
-    padding: 0.6rem;
-    font-size: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    margin-top: 0.3rem;
-  }
-
-  form button[type="submit"] {
-    margin-top: 1.2rem;
-    padding: 0.75rem 1.5rem;
-    font-size: 1rem;
-    background-color: var(--accent-color);
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background 0.2s;
-    width: 100%;
-  }
-
-  form button[type="submit"]:hover {
-    background-color: var(--accent-hover);
-  }
-
-  @media (max-width: 600px) {
-    .token-header {
-      flex-direction: column;
-      align-items: flex-start;
+  <style>
+    :root {
+      --bg-gradient: radial-gradient(1200px 600px at 10% -10%, #eef4ff 0%, #ffffff 40%),
+        linear-gradient(145deg, #f7f9fc, #ffffff);
+      --card-bg: #ffffff;
+      --text-color: #1f2a37;
+      --muted-color: #6b7280;
+      --accent-color: #2563eb;
+      --accent-hover: #1e40af;
+      --border-color: #e5e7eb;
+      --ring: rgba(37, 99, 235, 0.2);
+      --code-bg: #0b1220;
+      --code-fg: #e5edff;
+      --success: #16a34a;
+      --fail: #dc2626;
+      --shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
     }
 
-    .token-blocks {
-      flex-direction: column;
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0; padding: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial;
+      background: var(--bg-gradient); color: var(--text-color);
+      -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
     }
 
-    pre {
-      font-size: 0.85rem;
+    .wrap { padding: 32px 16px; }
+
+    .container {
+      max-width: 1100px; margin: 0 auto; background: var(--card-bg);
+      border: 1px solid var(--border-color); border-radius: 16px; box-shadow: var(--shadow);
+      overflow: hidden;
     }
-  }
-</style>
 
+    .header { display:flex; align-items:center; justify-content:space-between; gap:12px;
+      padding: 20px 24px; border-bottom:1px solid var(--border-color);
+      background: linear-gradient(180deg, rgba(37,99,235,.06), transparent);
+    }
+    .title { margin:0; font-size:1.35rem; letter-spacing:.2px; }
+    .hint { color: var(--muted-color); font-size: 12px; }
 
+    .content { padding: 20px 24px 24px; }
 
+    .grid { display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px 20px; }
+    .two { grid-template-columns: 1fr 1fr; }
+    .full { grid-column: 1 / -1; }
+
+    h2, h3 { margin: 0; }
+
+    .card {
+      border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden;
+      background:#fff;
+    }
+    .card-h { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 14px; background:#f8fafc; border-bottom:1px solid var(--border-color); }
+    .card-c { padding: 14px 16px; }
+
+    .status { font-size: .92rem; font-weight: 700; }
+    .status.success { color: var(--success); }
+    .status.fail { color: var(--fail); }
+
+    .btn { padding: 8px 12px; border: none; border-radius: 10px; cursor: pointer; font-weight:600; font-size:.9rem; background: var(--accent-color); color:#fff; transition: transform .06s ease, background .15s ease; }
+    .btn:hover { background: var(--accent-hover); }
+    .btn:active { transform: translateY(1px); }
+    .btn-ghost { background:#eef2ff; color:#1e3a8a; }
+    .btn-ghost:hover { background:#e0e7ff; }
+    .btn-block { width: 100%; }
+
+    pre { margin:0; white-space: pre-wrap; word-break: break-word; background: var(--code-bg); color: var(--code-fg); padding: 14px 16px; border-radius: 10px; overflow:auto; font-size: .9rem; line-height:1.5; }
+
+    .divider { height:1px; background:var(--border-color); margin: 14px 0; }
+
+    form { margin-top: 10px; }
+    label { display:block; font-weight:700; margin-bottom:6px; }
+    select, input[type="text"] {
+      width:100%; padding:10px 12px; border:1px solid var(--border-color); border-radius:10px; font-size:.975rem;
+      transition: box-shadow .15s ease, border-color .15s ease; background:#fff;
+    }
+    select:focus, input[type="text"]:focus { outline:none; border-color:var(--accent-color); box-shadow:0 0 0 4px var(--ring); }
+
+    @media (max-width: 980px) { .grid { grid-template-columns: 1fr; } }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <h2>Ответ от Hydra</h2>
-    <pre>{{ token_data }}</pre>
-
-    <div class="token-container">
-      <div class="token-blocks">
-        <div class="token-section">
-          <div class="token-header">
-            <h3>ID Token Payload</h3>
-            <span class="status {{ 'success' if id_token_validation_status == 'ok' else 'fail' }}">
-              {{ '✔ Успешно' if id_token_validation_status == 'ok' else '✖ Ошибка валидации' }}
-            </span>
-          </div>
-          <button class="copy" onclick="copyToClipboard('id_token_raw')">Скопировать</button>
-          <pre id="id_token_raw">id_token_payload: {{ id_token_payload }}</pre>
-        </div>
-
-        <div class="token-section">
-          <div class="token-header">
-            <h3>Access Token Payload</h3>
-            <span class="status {{ 'success' if access_token_validation_status == 'ok' else 'fail' }}">
-              {{ '✔ Успешно' if access_token_validation_status == 'ok' else '✖ Ошибка валидации' }}
-            </span>
-          </div>
-          <button class="copy" onclick="copyToClipboard('access_token_raw')">Скопировать</button>
-          <pre id="access_token_raw">{{ access_token_payload }}</pre>
-        </div>
-
-        <div class="token-section">
-          <div class="token-header">
-            <h3>Refresh Token</h3>
-          </div>
-          <button class="copy" onclick="copyToClipboard('refresh_token')">Скопировать</button>
-          <pre id="refresh_token">{{ refresh_token }}</pre>
-        </div>
+  <div class="wrap">
+    <div class="container">
+      <div class="header">
+        <h1 class="title">Ответ от Hydra</h1>
+        <span class="hint">Детали авторизации, полезные для отладки и ручной проверки</span>
       </div>
 
-      <div>
-        <h3>Raw Payload (Base64 decode)</h3>
-        <pre>{{ decoded_payload }}</pre>
+      <div class="content">
+        <div class="card full">
+          <div class="card-h"><h2>Сырой ответ</h2><span class="hint">server → client</span></div>
+          <div class="card-c"><pre>{{ token_data }}</pre></div>
+        </div>
+
+        <div class="grid full two" style="margin-top:16px;">
+          <div class="card">
+            <div class="card-h">
+              <h3>ID Token Payload</h3>
+              <span class="status {{ 'success' if id_token_validation_status == 'ok' else 'fail' }}">{{ '✔ Успешно' if id_token_validation_status == 'ok' else '✖ Ошибка валидации' }}</span>
+            </div>
+            <div class="card-c">
+              <button class="btn btn-block" onclick="copyToClipboard('id_token_raw')">Скопировать</button>
+              <div class="divider"></div>
+              <pre id="id_token_raw">id_token_payload: {{ id_token_payload }}</pre>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-h">
+              <h3>Access Token Payload</h3>
+              <span class="status {{ 'success' if access_token_validation_status == 'ok' else 'fail' }}">{{ '✔ Успешно' if access_token_validation_status == 'ok' else '✖ Ошибка валидации' }}</span>
+            </div>
+            <div class="card-c">
+              <button class="btn btn-block" onclick="copyToClipboard('access_token_raw')">Скопировать</button>
+              <div class="divider"></div>
+              <pre id="access_token_raw">{{ access_token_payload }}</pre>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-h">
+              <h3>Refresh Token</h3>
+            </div>
+            <div class="card-c">
+              <button class="btn btn-block" onclick="copyToClipboard('refresh_token')">Скопировать</button>
+              <div class="divider"></div>
+              <pre id="refresh_token">{{ refresh_token }}</pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="card full" style="margin-top:16px;">
+          <div class="card-h"><h3>Raw Payload (Base64 decode)</h3></div>
+          <div class="card-c"><pre>{{ decoded_payload }}</pre></div>
+        </div>
+
+        <div class="card full" style="margin-top:16px;">
+          <div class="card-h"><h3>RP‑Initiated Logout</h3><span class="hint">Задать параметры для завершения сессии</span></div>
+          <div class="card-c">
+            <form action="{{ logout_url }}" method="get">
+              <div class="grid two full">
+                <div>
+                  <label for="post_logout_redirect_uri">post_logout_redirect_uri</label>
+                  <select id="post_logout_redirect_uri" name="post_logout_redirect_uri">
+                    {% for uri in post_logout_redirect_uris %}
+                      <option value="{{ uri }}" {% if uri == post_logout_redirect_uri %}selected{% endif %}>{{ uri }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div>
+                  <label for="state">state</label>
+                  <input id="state" type="text" name="state" value="{{ state }}" />
+                </div>
+              </div>
+              <input type="hidden" name="id_token_hint" value="{{ id_token_hint }}" />
+              <div style="margin-top:12px; display:flex; gap:12px; justify-content:flex-end;">
+                <button type="submit" class="btn">Выйти!</button>
+              </div>
+            </form>
+          </div>
+        </div>
       </div>
-
-      <form action="{{ logout_url }}" method="get">
-        <label>
-          post_logout_redirect_uri:
-          <select name="post_logout_redirect_uri">
-            {% for uri in post_logout_redirect_uris %}
-              <option value="{{ uri }}" {% if uri == post_logout_redirect_uri %}selected{% endif %}>
-                {{ uri }}
-              </option>
-            {% endfor %}
-          </select>
-        </label>
-
-        <input type="hidden" name="id_token_hint" value="{{ id_token_hint }}">
-
-        <label>
-          state:
-          <input type="text" name="state" value="{{ state }}">
-        </label>
-
-        <button type="submit">Выйти!</button>
-      </form>
     </div>
   </div>
 
-<script>
-  function copyToClipboard(id) {
-    const el = document.createElement("textarea");
-    el.value = document.getElementById(id).innerText;
-    document.body.appendChild(el);
-    el.select();
-    document.execCommand("copy");
-    document.body.removeChild(el);
-    alert("Скопировано!");
-  }
-</script>
-
+  <!-- Скрипты оставлены без изменения логики -->
+  <script>
+    function copyToClipboard(id) {
+      const el = document.createElement("textarea");
+      el.value = document.getElementById(id).innerText;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand("copy");
+      document.body.removeChild(el);
+      alert("Скопировано!");
+    }
+  </script>
 
   <script>
     function rewriteLogoutAction() {

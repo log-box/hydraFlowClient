@@ -1,222 +1,218 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta content="width=device-width, initial-scale=1" name="viewport">
-    <title>Consent challenge stage</title>
-    <style>
-        :root {
-          --bg-gradient: linear-gradient(145deg, #f0f4f8, #ffffff);
-          --text-color: #2c3e50;
-          --container-bg: #fff;
-          --border-color: #e0e6ed;
-          --shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
-          --accent-color: #007bff;
-          --accent-hover: #0056b3;
-          --code-bg: #f0f0f0;
-          --success-bg: #f5fff5;
-          --success-border: #28a745;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Consent challenge stage</title>
+  <style>
+    :root {
+      --bg-gradient: radial-gradient(1200px 600px at 10% -10%, #eef4ff 0%, #ffffff 40%),
+        linear-gradient(145deg, #f7f9fc, #ffffff);
+      --card-bg: #ffffff;
+      --text-color: #1f2a37;
+      --muted-color: #6b7280;
+      --accent-color: #2563eb;
+      --accent-hover: #1e40af;
+      --border-color: #e5e7eb;
+      --ring: rgba(37, 99, 235, 0.2);
+      --code-bg: #0b1220;
+      --code-fg: #e5edff;
+      --success-bg: #f0fdf4;
+      --success-border: #22c55e;
+      --shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+    }
 
-        * {
-          box-sizing: border-box;
-        }
+    * { box-sizing: border-box; }
 
-        html, body {
-          margin: 0;
-          padding: 0;
-          font-family: "Segoe UI", Roboto, sans-serif;
-          background: var(--bg-gradient);
-          color: var(--text-color);
-          min-height: 100vh;
-          display: block;
-        }
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial;
+      background: var(--bg-gradient);
+      color: var(--text-color);
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      min-height: 100vh;
+    }
 
-        body {
-          padding: 2rem 1rem;
-          display: flex;
-          justify-content: center;
-          align-items: flex-start;
-        }
+    .wrap { padding: 32px 16px; }
 
-        .container {
-          background: var(--container-bg);
-          border: 1px solid var(--border-color);
-          border-radius: 12px;
-          padding: 2rem 1.5rem;
-          box-shadow: var(--shadow);
-          width: 100%;
-          max-width: 720px;
-          margin-top: 3vh;
-        }
+    .container {
+      max-width: 840px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
 
-        h2 {
-          font-size: 1.4rem;
-          margin-bottom: 1rem;
-          text-align: center;
-        }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-color);
+      background: linear-gradient(180deg, rgba(37, 99, 235, 0.06), transparent);
+    }
 
-        form label {
-          display: block;
-          margin-top: 1rem;
-          font-weight: 500;
-        }
+    .title { margin: 0; font-size: 1.35rem; letter-spacing: .2px; }
 
-        input[type="text"],
-        input[type="number"] {
-          width: 100%;
-          padding: 0.6rem;
-          margin-top: 0.4rem;
-          border: 1px solid #ccc;
-          border-radius: 6px;
-          font-size: 1rem;
-        }
+    .badge {
+      font-size: 12px; color: var(--muted-color); background: #f3f4f6; border: 1px solid var(--border-color);
+      padding: 6px 10px; border-radius: 999px;
+    }
 
-        input[type="checkbox"] {
-          margin-right: 0.5rem;
-        }
+    .content { padding: 20px 24px 24px; }
 
-        .button-group {
-          margin-top: 2rem;
-          display: flex;
-          justify-content: flex-end;
-          gap: 1rem;
-          flex-wrap: wrap;
-        }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 20px; }
+    .full { grid-column: 1 / -1; }
 
-        button {
-          padding: 0.6rem 1.2rem;
-          background-color: var(--accent-color);
-          color: white;
-          border: none;
-          border-radius: 6px;
-          cursor: pointer;
-          font-size: 1rem;
-          transition: background 0.2s ease-in-out;
-        }
+    label { display: block; font-weight: 600; margin-bottom: 6px; }
+    .hint { display: block; font-size: 12px; color: var(--muted-color); margin-top: 6px; }
 
-        button:hover {
-          background-color: var(--accent-hover);
-        }
+    input[type="text"], input[type="number"], textarea {
+      width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 10px;
+      font-size: 0.975rem; transition: box-shadow .15s ease, border-color .15s ease; background: #fff;
+    }
+    textarea { resize: vertical; }
 
-        summary {
-          font-weight: bold;
-          cursor: pointer;
-          margin-top: 1.5rem;
-        }
+    input[type="text"]:focus, input[type="number"]:focus, textarea:focus {
+      outline: none; border-color: var(--accent-color); box-shadow: 0 0 0 4px var(--ring);
+    }
 
-        details pre {
-          margin: 0.5rem 0 0 0;
-          white-space: pre-wrap;
-          word-break: break-word;
-          background: var(--code-bg);
-          padding: 1em;
-          border-radius: 5px;
-          max-height: 400px;
-          overflow: auto;
-          font-size: 0.85em;
-        }
+    .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 
-        #activeSessionBlock {
-          background: var(--success-bg);
-          border-left: 4px solid var(--success-border);
-          padding: 1rem;
-          border-radius: 8px;
-          margin-top: 2em;
-        }
+    .check { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px dashed var(--border-color); border-radius: 10px; }
 
-        #activeSessionBlock h3 {
-          margin-top: 0;
-        }
+    .button-group { margin-top: 18px; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; }
 
-        @media (max-width: 600px) {
-          h2 {
-            font-size: 1.2rem;
-          }
+    button { padding: 10px 16px; background: var(--accent-color); color: white; border: none; border-radius: 12px; cursor: pointer; font-size: 0.95rem; font-weight: 600; transition: transform .06s ease, background .15s ease; }
+    button:hover { background: var(--accent-hover); }
+    button:active { transform: translateY(1px); }
+    .btn-ghost { background: #eef2ff; color: #1e3a8a; }
+    .btn-ghost:hover { background: #e0e7ff; }
 
-          .button-group {
-            flex-direction: column;
-            align-items: stretch;
-          }
+    details { margin-top: 18px; border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; }
+    summary { list-style: none; cursor: pointer; padding: 12px 14px; background: #f8fafc; border-bottom: 1px solid var(--border-color); font-weight: 700; }
+    summary::-webkit-details-marker { display: none; }
 
-          button {
-            width: 100%;
-            font-size: 1rem;
-            padding: 0.8rem 1rem;
-          }
+    details pre { margin: 0; white-space: pre-wrap; word-break: break-word; background: var(--code-bg); color: var(--code-fg); padding: 14px 16px; max-height: 420px; overflow: auto; font-size: 0.88rem; line-height: 1.5; }
 
-          input[type="text"],
-          input[type="number"] {
-            font-size: 1rem;
-          }
+    #activeSessionBlock { background: var(--success-bg); border: 1px solid var(--success-border); padding: 14px; border-radius: 14px; margin-top: 20px; overflow-x: auto; }
+    #activeSessionBlock h3 { margin: 0 0 8px; }
 
-          details pre {
-            font-size: 0.8em;
-          }
-        }
-    </style>
+    .divider { height: 1px; background: var(--border-color); margin: 16px 0; }
 
+    @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+  </style>
 </head>
 <body>
-<div class="container">
-    <h2>Выдача согласия и кастомизация ID и Access токенов</h2>
-    <form id="consentForm">
-        <label>Список сервисов, которые будут доверять access token
-            <input name="grant_access_token_audience" placeholder='MAPIC, USSS (через запятую)' type="text">
-        </label>
-        <label>Hydra выдаст Access токен с этими скопами
-            <input name="grant_scope" placeholder='openid, offline, profile (через запятую)' type="text">
-        </label>
-        <label><input name="remember" type="checkbox"> Сохранить согласие пользователя (consent-сессию)</label>
-        <label>На сколько сохранить согласие (в секундах, 0 = навсегда)
-            <input name="remember_for" placeholder='3600' type="number">
-        </label>
-        <label>Дополнительные данные (context)
-            <textarea data-json data-json-object name="context"
-                      onblur="tryFormatJson(this)"
-                      placeholder='{"app": "frontend", "env": "dev"}' rows="3"></textarea>
-        </label>
+  <div class="wrap">
+    <div class="container">
+      <div class="header">
+        <h1 class="title">Согласие и кастомизация токенов (Consent challenge)</h1>
+        <span class="badge" id="challengeBadge" title="Текущий consent_challenge">challenge: —</span>
+      </div>
 
-        <label>Кастомные клеймы ID Token
-            <textarea data-json data-json-object name="session.id_token"
-                      onblur="tryFormatJson(this)"
-                      placeholder='{"login": "user123"}' rows="3"></textarea>
-        </label>
+      <div class="content">
+        <form id="consentForm">
+          <div class="grid">
+            <div class="full">
+              <p class="hint" style="margin:0">Этап согласия в потоке OAuth2/OIDC (Ory Hydra). Здесь вы подтверждаете аудиторию, скопы и добавляете произвольные клеймы в токены.</p>
+              <div class="divider"></div>
+            </div>
 
-        <label>Кастомные клеймы Access Token
-            <textarea data-json data-json-object name="session.access_token"
-                      onblur="tryFormatJson(this)"
-                      placeholder='{"identity_id": "abc-123"}' rows="3"></textarea>
-        </label>
+            <div class="full">
+              <label for="grant_access_token_audience">Список сервисов, которые будут доверять access token</label>
+              <input id="grant_access_token_audience" name="grant_access_token_audience" type="text" placeholder="MAPIC, USSS (через запятую)" />
+              <small class="hint">Будет передано в <code>grant_access_token_audience</code>. Введите список через запятую или пробел.</small>
+            </div>
 
-        <label>Error (для отказа)
-            <input name="error" placeholder="например, access_denied" type="text">
-        </label>
-        <label>Error Description
-            <input name="error_description" placeholder="например, Пользователь отказался" type="text">
-        </label>
+            <div class="full">
+              <label for="grant_scope">Hydra выдаст Access токен с этими скопами</label>
+              <input id="grant_scope" name="grant_scope" type="text" placeholder="openid, offline, profile (через запятую)" />
+              <small class="hint">Скопы согласия (<code>grant_scope</code>). Например: <code>openid</code>, <code>profile</code>, <code>offline_access</code>.</small>
+            </div>
 
-        <input name="consent_challenge" type="hidden" value="">
-        <input name="session_id" type="hidden" value="">
+            <div class="row full">
+              <div class="check">
+                <input id="remember" name="remember" type="checkbox" />
+                <label for="remember" style="font-weight:600;">Сохранить согласие пользователя (consent-сессию)</label>
+              </div>
+              <div style="flex:1 1 220px; min-width:220px;">
+                <label for="remember_for">На сколько сохранить согласие (в секундах, 0 = навсегда)</label>
+                <input id="remember_for" name="remember_for" type="number" placeholder="3600" inputmode="numeric" />
+                <small class="hint">Если <b>включено</b> «Сохранить согласие», TTL берётся отсюда. <code>0</code> — без ограничения.</small>
+              </div>
+            </div>
 
-        <div class="button-group">
-            <button onclick="onSubmit(false)" type="button">Отмена</button>
-            <button onclick="onSubmit(true)" type="button">Далее</button>
-        </div>
+            <div class="full">
+              <label for="context">Дополнительные данные (context)</label>
+              <textarea id="context" name="context" rows="3" data-json data-json-object onblur="tryFormatJson(this)" placeholder='{"app": "frontend", "env": "dev"}'></textarea>
+              <small class="hint">Произвольный JSON-объект, доступный обработчику согласия. Поле валидируется и форматируется.</small>
+            </div>
 
-        <details>
-            <summary>Детали get consentChallenge (техническое)</summary>
-            <pre id="consentRequestJson"></pre>
-        </details>
+            <div class="full">
+              <label for="session.id_token">Кастомные клеймы ID Token</label>
+              <textarea id="session.id_token" name="session.id_token" rows="3" data-json data-json-object onblur="tryFormatJson(this)" placeholder='{"login": "user123"}'></textarea>
+              <small class="hint">Будут включены в <code>id_token</code> (секция <code>session.id_token</code>). Должен быть JSON-объект.</small>
+            </div>
 
-        <div id="activeSessionBlock" style="display: none;">
-            <h3>⚡ Значения подгружены из активной сессии</h3>
-            <pre id="activeSessionInfoJson"></pre>
-        </div>
-    </form>
-</div>
+            <div class="full">
+              <label for="session.access_token">Кастомные клеймы Access Token</label>
+              <textarea id="session.access_token" name="session.access_token" rows="3" data-json data-json-object onblur="tryFormatJson(this)" placeholder='{"identity_id": "abc-123"}'></textarea>
+              <small class="hint">Будут включены в <code>access_token</code> (секция <code>session.access_token</code>). Должен быть JSON-объект.</small>
+            </div>
 
-<script>
+            <div class="full">
+              <details>
+                <summary>Отказ от согласия (ошибка)</summary>
+                <div style="padding:12px 14px; background:#fff;">
+                  <div class="grid">
+                    <div>
+                      <label for="error">Error (для отказа)</label>
+                      <input id="error" name="error" type="text" placeholder="например, access_denied" />
+                      <small class="hint">Код ошибки OAuth2/OIDC (по умолчанию <code>access_denied</code>).</small>
+                    </div>
+                    <div>
+                      <label for="error_description">Error Description</label>
+                      <input id="error_description" name="error_description" type="text" placeholder="например, Пользователь отказался" />
+                      <small class="hint">Человекочитаемое описание причины отказа.</small>
+                    </div>
+                  </div>
+                </div>
+              </details>
+            </div>
+
+            <input name="consent_challenge" type="hidden" value="" />
+            <input name="session_id" type="hidden" value="" />
+
+            <div class="button-group full">
+              <button type="button" class="btn-ghost" onclick="onSubmit(false)">Отмена</button>
+              <button type="button" onclick="onSubmit(true)">Далее</button>
+            </div>
+
+            <div class="full">
+              <details>
+                <summary>Детали get consentChallenge (техническое)</summary>
+                <pre id="consentRequestJson"></pre>
+              </details>
+
+              <div id="activeSessionBlock" style="display:none;">
+                <h3>⚡ Значения подгружены из активной сессии</h3>
+                <pre id="activeSessionInfoJson"></pre>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ВАЖНО: ниже — исходные скрипты БЕЗ изменений логики/имён полей/функций -->
+  <script>
     function getQueryParam(name) {
       const urlParams = new URLSearchParams(window.location.search);
       return urlParams.get(name);
@@ -225,6 +221,8 @@
     async function loadSettings() {
       try {
         const challenge = getQueryParam("consent_challenge");
+        const badge = document.getElementById("challengeBadge");
+        if (badge) badge.textContent = `challenge: ${challenge || "—"}`;
         if (!challenge) {
           alert("consent_challenge не указан");
           return;
@@ -241,7 +239,7 @@
           );
         }
 
-            // JSON для отображения
+        // JSON для отображения
         const consentRequestRes = await fetch(`/consent_request_data?session_id=${settingsData.session_id}`);
         const consentRequestData = await consentRequestRes.json();
         document.getElementById("consentRequestJson").textContent = JSON.stringify(consentRequestData, null, 2);
@@ -286,98 +284,96 @@
       }
     }
 
+    async function onSubmit(continueFlow) {
+      const form = document.forms.consentForm;
 
-
-  async function onSubmit(continueFlow) {
-    const form = document.forms.consentForm;
-
-    if (!validateAllJsonFields()) {
-      alert("Проверьте корректность JSON в выделенных полях");
-      return;
-    }
-
-    if (!continueFlow) {
-      return await rejectConsent(form);
-    }
-
-    return await acceptConsent(form);
-  }
-
-  async function rejectConsent(form) {
-    const data = {
-      consent_challenge: form.consent_challenge.value,
-      continue_: false,
-      error: form.error.value || "access_denied",
-      error_description: form.error_description.value || "Пользователь отказался предоставить согласие"
-    };
-
-    await sendConsentPayload(data);
-  }
-
-  async function acceptConsent(form) {
-    let context = {}, idToken = {}, accessToken = {};
-
-    try {
-      context = parseJsonOrEmpty(form.context.value);
-      idToken = parseJsonOrEmpty(form['session.id_token'].value);
-      accessToken = parseJsonOrEmpty(form['session.access_token'].value);
-    } catch (e) {
-      alert("Ошибка парсинга JSON: " + e.message);
-      return;
-    }
-
-    const data = {
-      session_id: form.session_id.value,
-      consent_challenge: form.consent_challenge.value,
-      context,
-      grant_access_token_audience: splitCSV(form.grant_access_token_audience.value),
-      grant_scope: splitCSV(form.grant_scope.value),
-      remember: form.remember.checked,
-      remember_for: parseInt(form.remember_for.value, 10),
-      session: {
-        id_token: idToken,
-        access_token: accessToken
-      },
-      continue_: true,
-      error: null,
-      error_description: null
-    };
-
-    await sendConsentPayload(data);
-  }
-
-  async function sendConsentPayload(data) {
-    const res = await fetch('/consent_process', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-
-    if (res.ok) {
-      const result = await res.json();
-      if (result.redirect_url) {
-        redirectWithHostRewrite(result.redirect_url);
-      } else {
-        alert('Успешно, но без redirect_url');
+      if (!validateAllJsonFields()) {
+        alert("Проверьте корректность JSON в выделенных полях");
+        return;
       }
-    } else {
-      const errorText = await res.text();
-      alert('Ошибка сервера: ' + errorText);
+
+      if (!continueFlow) {
+        return await rejectConsent(form);
+      }
+
+      return await acceptConsent(form);
     }
-  }
 
-  function splitCSV(val) {
-    return val
-      .replace(/\s+/g, ',')
-      .split(',')
-      .map(s => s.trim())
-      .filter(Boolean);
-  }
+    async function rejectConsent(form) {
+      const data = {
+        consent_challenge: form.consent_challenge.value,
+        continue_: false,
+        error: form.error.value || "access_denied",
+        error_description: form.error_description.value || "Пользователь отказался предоставить согласие"
+      };
 
-  function parseJsonOrEmpty(value) {
-    const trimmed = value.trim();
-    return trimmed ? JSON.parse(trimmed) : {};
-  }
+      await sendConsentPayload(data);
+    }
+
+    async function acceptConsent(form) {
+      let context = {}, idToken = {}, accessToken = {};
+
+      try {
+        context = parseJsonOrEmpty(form.context.value);
+        idToken = parseJsonOrEmpty(form['session.id_token'].value);
+        accessToken = parseJsonOrEmpty(form['session.access_token'].value);
+      } catch (e) {
+        alert("Ошибка парсинга JSON: " + e.message);
+        return;
+      }
+
+      const data = {
+        session_id: form.session_id.value,
+        consent_challenge: form.consent_challenge.value,
+        context,
+        grant_access_token_audience: splitCSV(form.grant_access_token_audience.value),
+        grant_scope: splitCSV(form.grant_scope.value),
+        remember: form.remember.checked,
+        remember_for: parseInt(form.remember_for.value, 10),
+        session: {
+          id_token: idToken,
+          access_token: accessToken
+        },
+        continue_: true,
+        error: null,
+        error_description: null
+      };
+
+      await sendConsentPayload(data);
+    }
+
+    async function sendConsentPayload(data) {
+      const res = await fetch('/consent_process', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (res.ok) {
+        const result = await res.json();
+        if (result.redirect_url) {
+          redirectWithHostRewrite(result.redirect_url);
+        } else {
+          alert('Успешно, но без redirect_url');
+        }
+      } else {
+        const errorText = await res.text();
+        alert('Ошибка сервера: ' + errorText);
+      }
+    }
+
+    function splitCSV(val) {
+      return val
+        .replace(/\s+/g, ',')
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean);
+    }
+
+    function parseJsonOrEmpty(value) {
+      const trimmed = value.trim();
+      return trimmed ? JSON.parse(trimmed) : {};
+    }
 
     function validateJsonInput(input) {
       const value = input.value.trim();
@@ -448,19 +444,19 @@
 
       location.href = baseUrl + correctedPath;
     }
-function tryFormatJson(textarea) {
-  const value = textarea.value.trim();
-  if (!value) return;
+    function tryFormatJson(textarea) {
+      const value = textarea.value.trim();
+      if (!value) return;
 
-  try {
-    const parsed = JSON.parse(value);
-    if (typeof parsed !== 'object' || parsed === null) return;
-    textarea.value = JSON.stringify(parsed, null, 2);
-  } catch (_) {
-    // не форматируем, если невалидный
-  }
-}
+      try {
+        const parsed = JSON.parse(value);
+        if (typeof parsed !== 'object' || parsed === null) return;
+        textarea.value = JSON.stringify(parsed, null, 2);
+      } catch (_) {
+        // не форматируем, если невалидный
+      }
+    }
     loadSettings();
-</script>
+  </script>
 </body>
 </html>

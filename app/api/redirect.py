@@ -19,6 +19,15 @@ router = APIRouter()
 
 templates = Jinja2Templates(directory="app/templates")
 
+def decode_state_with_verifier(state_str: str) -> dict:
+    """Декодируем base64url state в словарь"""
+    try:
+        padded = state_str + "=" * (-len(state_str) % 4)  # паддинг
+        decoded_bytes = base64.urlsafe_b64decode(padded)
+        return json.loads(decoded_bytes.decode("utf-8"))
+    except Exception as e:
+        logger.error(f"Ошибка декодирования state: {e}")
+        return {}
 
 def is_valid_payload(p: str | dict) -> str:
     return "ok" if isinstance(p, dict) else "fail"
@@ -175,14 +184,18 @@ async def handle_redirect_uri(
         </html>
         """
         return HTMLResponse(content=html_content, status_code=422)
-
+    state_data = decode_state_with_verifier(state or "")
+    code_verifier = state_data.get("v")
     token_request_data = {
         "grant_type": "authorization_code",
         "client_id": client_id.strip(),
         "code": code.strip(),
         "redirect_uri": redirect_uri.strip()
     }
-
+    if code_verifier:
+        token_request_data["code_verifier"] = code_verifier
+    else:
+        logger.warning("code_verifier отсутствует в state — PKCE проверка может упасть")
     logger.info("`token_request_data': %s", token_request_data)
 
     try:

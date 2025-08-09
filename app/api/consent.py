@@ -1,3 +1,5 @@
+import json
+
 import httpx
 from fastapi import HTTPException, APIRouter, Query
 from fastapi.responses import FileResponse, JSONResponse
@@ -98,6 +100,10 @@ async def consent_endpoint(data: ConsentFormSubmitData):
 
     try:
         async with httpx.AsyncClient() as client:
+            # Логируем, что отправляем
+            logger.info("Sending consent payload to Hydra:\n%s",
+                        json.dumps(consent_payload, indent=2, ensure_ascii=False))
+
             response = await client.put(
                 f"{settings.HYDRA_PRIVATE_URL}/admin/oauth2/auth/requests/consent/accept?consent_challenge={data.consent_challenge}",
                 json=consent_payload

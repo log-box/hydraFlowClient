@@ -1,7 +1,13 @@
 db:
   ignore_unknown_table_columns: false
 log:
-  level: panic
+#  level: panic
+#  level: fatal
+#  level: error
+#  level: warn
+  level: info
+#  level: debug
+#  level: trace
   leak_sensitive_values: false
   redaction_text: ""
   format: json
@@ -42,4 +48,5 @@ oidc:
     pairwise:
       salt: youReallyNeedToChangeThis
 oauth2:
-  mirror_top_level_claims: false
+  mirror_top_level_claims: true
+#  mirror_top_level_claims: false

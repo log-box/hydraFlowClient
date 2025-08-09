@@ -1,245 +1,382 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8"/>
-    <meta content="width=device-width, initial-scale=1" name="viewport">
-    <title>Hydra Auth Form</title>
-    <style>
-        html, body {
-          margin: 0;
-          padding: 0;
-          font-family: "Segoe UI", Roboto, sans-serif;
-          background: linear-gradient(145deg, #f0f4f8, #ffffff);
-          color: #2c3e50;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          min-height: 100vh;
-        }
-
-        .container {
-          background: #fff;
-          border: 1px solid #e0e6ed;
-          border-radius: 12px;
-          padding: 2rem 1rem;
-          box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
-          width: 100%;
-          max-width: 600px;
-        }
-
-        h1 {
-          font-size: 1.4rem;
-          margin-bottom: 1rem;
-          text-align: center;
-        }
-
-        form label {
-          display: block;
-          margin-top: 1rem;
-          font-weight: 500;
-        }
-
-        select,
-        input[type="text"],
-        input[type="number"] {
-          width: 100%;
-          padding: 0.6rem;
-          margin-top: 0.4rem;
-          border: 1px solid #ccc;
-          border-radius: 6px;
-          font-size: 1rem;
-        }
-
-        button {
-          margin-top: 2rem;
-          padding: 0.75rem 1.5rem;
-          background-color: #007bff;
-          color: white;
-          border: none;
-          border-radius: 6px;
-          cursor: pointer;
-          font-size: 1rem;
-          width: 100%;
-        }
-
-        button:hover {
-          background-color: #0056b3;
-        }
-
-        input:invalid {
-          border: 2px solid red;
-        }
-    </style>
+<meta charset="UTF-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport">
+<title>Hydra Auth Form (PKCE + audience, понятные подсказки)</title>
+<style>
+  html, body {
+    margin: 0; padding: 0;
+    font-family: "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(145deg, #f0f4f8, #ffffff);
+    color: #2c3e50;
+    display: flex; justify-content: center; align-items: center;
+    min-height: 100vh;
+  }
+  .container {
+    background: #fff; border: 1px solid #e0e6ed; border-radius: 12px;
+    padding: 2rem 1rem; box-shadow: 0 8px 16px rgba(0,0,0,0.05);
+    width: 100%; max-width: 820px;
+  }
+  h1 { font-size: 1.4rem; margin-bottom: 1rem; text-align: center; }
+  form label { display: block; margin-top: 1rem; font-weight: 600; }
+  select, input[type="text"], input[type="number"] {
+    width: 100%; padding: 0.6rem; margin-top: 0.4rem;
+    border: 1px solid #ccc; border-radius: 6px; font-size: 1rem;
+  }
+  input[readonly] { background: #f8f9fa; }
+  button {
+    margin-top: 2rem; padding: 0.75rem 1.5rem;
+    background-color: #007bff; color: white; border: none;
+    border-radius: 6px; cursor: pointer; font-size: 1rem; width: 100%;
+  }
+  button:hover { background-color: #0056b3; }
+  .row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .badge { display:inline-block; padding:2px 8px; border-radius: 999px; font-size:.85rem; margin-left:8px; }
+  .badge-green { background:#e6ffed; color:#036b26; border:1px solid #b7f5c7; }
+  .badge-blue  { background:#e6f0ff; color:#1e40af; border:1px solid #c7d7ff; }
+  .badge-gray  { background:#f2f3f5; color:#374151; border:1px solid #e5e7eb; }
+  .warn { color:#b85600; font-size:.9rem; margin-top:.3rem; }
+  .hint { color:#5a6270; font-size:.92rem; margin-top:.35rem; line-height:1.35; }
+  .inline { display:flex; align-items:center; gap:10px; }
+</style>
 </head>
-
 <body>
 <div class="container">
-    <h1>Запрос /oauth2/auth в Ory Hydra</h1>
-    <form id="authForm">
-        <label>Клиент из БД Ory Hydra
-            <select id="client_id"></select>
-        </label>
-        <label>Зарегистрированные Redirect URIs клиента
-            <select id="redirect_uri"></select>
-        </label>
-        <label>Доступные Scope клиента
-            <input id="scope" placeholder="openid offline" type="text" value="">
-        </label>
-        <label>State
-            <input id="state" type="text" value="">
-        </label>
-        <label>Nonce
-            <input id="nonce" type="text" value="">
-        </label>
-        <label>Response Type
-            <input id="response_type" type="text" value="code">
-        </label>
-        <label>ID Token Hint
-            <input id="id_token_hint" placeholder="id_token_hint (строка)" type="text">
-        </label>
-        <label>Login Hint
-            <input id="login_hint" placeholder="login_hint (строка)" type="text">
-        </label>
-        <label>Prompt
-            <input id="prompt" placeholder="none, login, consent" type="text">
-        </label>
-        <label>Max Age
-            <input id="max_age" placeholder="число ≥ 0" type="number">
-        </label>
-        <label>ACR Values
-            <input id="acr_values" placeholder="acr_values (строка)" type="text">
-        </label>
-        <button type="submit">Начать сценарий</button>
-    </form>
+  <h1>Запрос /oauth2/auth в Ory Hydra</h1>
+
+  <div id="msg" class="warn" style="display:none"></div>
+
+  <form id="authForm" autocomplete="off">
+    <label>Клиент из БД Ory Hydra
+      <select id="client_id" title="Какое приложение запрашивает доступ. Выбираем из списка зарегистрированных клиентов."></select>
+      <div class="hint">Кто запрашивает доступ. Обычно это конкретное приложение/сервис, зарегистрированное в системе.</div>
+    </label>
+
+    <div class="inline" style="margin-top:.5rem">
+      <div id="auth_method_badge" class="badge badge-gray" title="Как клиент будет подтверждать себя на этапе выдачи токенов (на /oauth2/token).">token_endpoint_auth_method: —</div>
+      <label class="inline" style="margin-top:0" title="PKCE — дополнительная защита. Для публичных клиентов (без секрета) обязательно.">
+        <input type="checkbox" id="use_pkce" checked>
+        Использовать PKCE (рекомендуется)
+      </label>
+    </div>
+    <div id="pkce_note" class="hint" style="display:none">Клиент «публичный» (без секрета): при сценариях с «code» PKCE обязателен.</div>
+
+    <div class="row">
+      <label>Redirect URI
+        <select id="redirect_uri" title="Куда вернёмся после входа. Должен совпадать с адресами, зарегистрированными у клиента."></select>
+        <div class="hint">Адрес страницы, на которую вернётся пользователь после входа. Он заранее внесён при настройке клиента.</div>
+      </label>
+
+      <label>Response Type (из клиента)
+        <select id="response_type" title="Формат ответа на первом шаге. Чаще всего «code» — безопасный вариант."></select>
+        <div class="hint">Что вернём сначала: «code» — код обменяем на токены; «id_token»/«token» — сразу токены (менее безопасно для фронта).</div>
+      </label>
+    </div>
+
+    <label>Scope
+      <input id="scope" placeholder="openid offline_access" type="text"
+             title="Набор прав/данных. «openid» — профиль пользователя; «offline_access» — обновление токена без повторного входа.">
+      <div class="hint">Какие данные и права нужны приложению. <b>openid</b> — базовый профиль, <b>offline_access</b> — позволяет получать новый токен без повторного входа.</div>
+    </label>
+
+    <label>Audience
+      <select id="audience" multiple size="3" title="Для каких сервисов нужен доступ (например, конкретные API). Ctrl+клик — выбрать несколько."></select>
+      <div class="hint">Кому предназначен токен. Если выбрать конкретные API — доступ будет только к ним (отражается в токене как «aud»).</div>
+    </label>
+
+    <div class="row">
+      <label>State (base64url, содержит code_verifier)
+        <input id="state" type="text" readonly
+               title="Технический маркер запроса (защита от подмены). Мы дополнительно прячем здесь PKCE code_verifier.">
+        <div class="hint">Технический идентификатор запроса. Мы сохраняем здесь секрет PKCE, чтобы безопасно обменять код на токены.</div>
+      </label>
+      <label>Nonce
+        <input id="nonce" type="text" value=""
+               title="Защита от повторного использования ответов. Нужен, если сразу запрашивается id_token. Добавляется в состав клеймов">
+        <div class="hint">Дополнительная защита. Обязателен, если сразу запрашивается <b>ID Token</b>.</div>
+      </label>
+    </div>
+
+    <div class="row">
+      <label>Code Verifier
+        <input id="code_verifier" type="text" readonly
+               title="Секрет PKCE. На первом шаге не отправляется. Передается при обмене кода на токены. Аналог client_secret, но генерируется каждый раз новый">
+        <div class="hint">Секрет для PKCE. Hydra сравнит его хэш на втором шаге, когда будем менять код на токены.</div>
+      </label>
+      <label>Code Challenge (S256)
+        <input id="code_challenge" type="text" readonly
+               title="Хэш от Code Verifier. Отправляется сейчас — по нему Hydra проверит подлинность на шаге получения токенов">
+        <div class="hint">Хэш от «Code Verifier». Его отправляем сейчас, чтобы Hydra позже могла проверить, что токены выдаются тому же, кто начал вход.</div>
+      </label>
+    </div>
+
+    <div class="row">
+      <label>ID Token Hint
+        <input id="id_token_hint" placeholder="JWT строка" type="text"
+               title="Подсказка: если активную сессию нельзя передать через cookies">
+        <div class="hint">Для передачи активной сессии с другого "устройства/браузера". Если не уверены — оставьте пустым.</div>
+      </label>
+      <label>Login Hint
+        <input id="login_hint" placeholder="логин" type="text"
+               title="Подсказка для формы входа — например, под каким логином нужно аутентифицировать пользователя">
+        <div class="hint">Чтобы на странице входа сразу подставить логин пользователя. Не влияет на права.</div>
+      </label>
+    </div>
+
+    <div class="row">
+      <label>Prompt
+        <input id="prompt" placeholder="none login consent" type="text"
+               title="Как вести себя при входе: «login» — заставить войти снова, «consent» — показать разрешения, «none» — без экранов.">
+        <div class="hint"><b>login</b> — попросить войти заново, <b>consent</b> — показать экран разрешений, <b>none</b> — ничего не показывать (если можно).</div>
+      </label>
+      <label>Max Age
+        <input id="max_age" placeholder="число ≥ 0" type="number" min="0" step="1"
+               title="Максимальный 'возраст' логина (в секундах). 0 — просить войти заново.">
+        <div class="hint">Через сколько секунд логин считается «устаревшим». Если <b>0</b> — попросим войти снова прямо сейчас.</div>
+      </label>
+    </div>
+
+    <label>ACR Values
+      <input id="acr_values" placeholder="список через пробел" type="text"
+             title="Требуемый уровень надёжности входа (например, с подтверждением по SMS).">
+      <div class="hint">Как «сильно» нужен вход. Например, потребовать вход с 2‑факторной проверкой. Реализация зависит от политики вашей страницы логина.</div>
+    </label>
+
+    <button type="submit" title="Начать сценарий входа с выбранными настройками">Начать сценарий</button>
+  </form>
 </div>
 
 <script>
-    let clients = [];
+let clients = [];
+let discovery = null;
+const PKCE_PREFILL_ENDPOINT = '/proxy/pkce/prefill';
 
-    async function loadClients() {
-      try {
-        const res = await fetch("/proxy/clients");
-        clients = await res.json();
+// ===== helpers =====
+function showMsg(text){ const el=document.getElementById('msg'); el.textContent=text||''; el.style.display=text?'block':'none'; }
+function b64url(bytes){ let s=''; bytes.forEach(b=>s+=String.fromCharCode(b)); return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+function supportsSubtle(){ return window.isSecureContext && window.crypto && crypto.subtle && typeof crypto.subtle.digest==='function'; }
+function supportsRng(){ return window.crypto && typeof crypto.getRandomValues==='function'; }
+function randomB64Url(bytesLen=64){ if(!supportsRng()) throw new Error('Нет crypto.getRandomValues'); const b=new Uint8Array(bytesLen); crypto.getRandomValues(b); const v=b64url(b); return v.length>=43? v.slice(0,128): randomB64Url(bytesLen+16); }
+async function sha256B64Url(str){ const data=new TextEncoder().encode(str); const hash=await crypto.subtle.digest('SHA-256',data); return b64url(new Uint8Array(hash)); }
+function b64urlJson(obj){ return b64url(new TextEncoder().encode(JSON.stringify(obj))); }
+async function pkcePrefillServer(){ const res = await fetch(PKCE_PREFILL_ENDPOINT,{method:'POST',credentials:'include'}); if(!res.ok) throw new Error('PKCE prefill server error'); return res.json(); }
+async function getDiscovery(){ try{ const res = await fetch('/proxy/.well-known/openid-configuration',{credentials:'include'}); if(!res.ok) throw new Error('discovery failed'); return await res.json(); }catch(e){ console.warn('Discovery failed', e); return null; } }
 
-        const clientSelect = document.getElementById('client_id');
-        clientSelect.innerHTML = '';
+// ===== load clients =====
+async function loadClients(){
+  const res = await fetch('/proxy/clients',{credentials:'include'});
+  if(!res.ok) throw new Error('Failed to load clients');
+  clients = await res.json();
 
-        for (const client of clients) {
-          const opt = document.createElement('option');
-          opt.value = client.client_id;
-          opt.textContent = client.client_name || client.client_id;
-          clientSelect.appendChild(opt);
-        }
+  const clientSelect = document.getElementById('client_id');
+  clientSelect.innerHTML='';
+  for(const c of clients){
+    const opt=document.createElement('option');
+    opt.value=c.client_id;
+    opt.textContent=c.client_name||c.client_id;
+    clientSelect.appendChild(opt);
+  }
+  clientSelect.addEventListener('change', updateClientFields);
+  await updateClientFields();
+}
 
-        updateRedirects();
-        clientSelect.addEventListener('change', updateRedirects);
-      } catch (e) {
-        alert('Ошибка при загрузке клиентов');
-        console.error(e);
-      }
+function badgeForMethod(method){
+  const el = document.getElementById('auth_method_badge');
+  el.textContent = `token_endpoint_auth_method: ${method||'—'}`;
+  el.className = 'badge ' + (
+    method==='none' ? 'badge-green'
+    : method==='private_key_jwt' ? 'badge-blue'
+    : 'badge-gray'
+  );
+}
+
+function currentAuthMethod(){
+  const id = document.getElementById('client_id').value;
+  const c = clients.find(x=>x.client_id===id);
+  return (c && c.token_endpoint_auth_method) ? String(c.token_endpoint_auth_method).toLowerCase() : '';
+}
+
+async function regeneratePkce(){
+  const method = currentAuthMethod();
+  const rt = document.getElementById('response_type').value || '';
+  const includesCode = /\bcode\b/.test(rt);
+  const mustPkce = (method==='none' && includesCode);
+  let usePkce = document.getElementById('use_pkce').checked || mustPkce;
+
+  if (!includesCode || !usePkce) {
+    document.getElementById('state').value = '';
+    document.getElementById('code_verifier').value = '';
+    document.getElementById('code_challenge').value = '';
+    return;
+  }
+
+  try{
+    let code_verifier, code_challenge, state;
+    if (supportsSubtle()) {
+      code_verifier = randomB64Url(64);
+      code_challenge = await sha256B64Url(code_verifier);
+      const rawState = (window.crypto?.randomUUID?.() || Math.random().toString(36).slice(2));
+      state = b64urlJson({ s: rawState, v: code_verifier });
+      showMsg('');
+    } else {
+      const pre = await pkcePrefillServer();
+      code_verifier = pre.code_verifier;
+      code_challenge = pre.code_challenge;
+      state = pre.state;
+      showMsg('PKCE сгенерирован на сервере (внешний HTTP).');
     }
+    document.getElementById('state').value = state;
+    document.getElementById('code_verifier').value = code_verifier;
+    document.getElementById('code_challenge').value = code_challenge;
+  }catch(e){
+    console.error(e);
+    showMsg('Не удалось сгенерировать PKCE.');
+  }
+}
 
-    function updateRedirects() {
-      const selectedId = document.getElementById('client_id').value;
-      const client = clients.find(c => c.client_id === selectedId);
-      const redirectSelect = document.getElementById('redirect_uri');
-      redirectSelect.innerHTML = '';
+async function updateClientFields(){
+  const id = document.getElementById('client_id').value;
+  const client = clients.find(c=>c.client_id===id);
 
-      if (client) {
-        for (const uri of client.redirect_uris) {
-          const opt = document.createElement('option');
-          opt.value = uri;
-          opt.textContent = uri;
-          redirectSelect.appendChild(opt);
-        }
-        document.getElementById('scope').value = client.scope || '';
-      }
+  // redirect_uris
+  const redirectSelect = document.getElementById('redirect_uri');
+  redirectSelect.innerHTML='';
+  for(const uri of (client?.redirect_uris||[])){
+    const opt=document.createElement('option');
+    opt.value=uri; opt.textContent=uri; redirectSelect.appendChild(opt);
+  }
+
+  // scope
+  document.getElementById('scope').value = client?.scope || 'openid offline_access';
+
+  // response_types
+  const rtSelect = document.getElementById('response_type');
+  rtSelect.innerHTML='';
+  const rts = (client?.response_types?.length ? client.response_types : ['code']);
+  for(const rt of rts){
+    const opt=document.createElement('option');
+    opt.value=rt; opt.textContent=rt; rtSelect.appendChild(opt);
+  }
+
+  // audience
+  const audSelect = document.getElementById('audience');
+  audSelect.innerHTML = '';
+  if (client?.audience && client.audience.length) {
+    for (const aud of client.audience) {
+      const opt = document.createElement('option');
+      opt.value = aud;
+      opt.textContent = aud;
+      audSelect.appendChild(opt);
     }
+  }
 
-    function isValidPrompt(value) {
-      return ["none", "login", "consent"].includes(value);
+  // badge + pkce policy
+  const method = currentAuthMethod();
+  badgeForMethod(method);
+  const usePkceBox = document.getElementById('use_pkce');
+  const pkceNote = document.getElementById('pkce_note');
+  if (method === 'none') {
+    usePkceBox.checked = true;
+    usePkceBox.disabled = true;
+    pkceNote.style.display = 'block';
+    pkceNote.textContent = 'Public client (без секрета): PKCE обязателен при сценариях с «code».';
+  } else {
+    usePkceBox.disabled = false;
+    pkceNote.style.display = 'none';
+  }
+
+  document.getElementById('nonce').value = (window.crypto?.randomUUID?.() || Math.random().toString(36).slice(2));
+  await regeneratePkce();
+}
+
+function isValidPrompt(value){ return value.trim().split(/\s+/).every(v=>['none','login','consent','select_account'].includes(v)); }
+function isValidInteger(value){ const n=Number(value); return Number.isSafeInteger(n) && n>=0; }
+function validateAndGetValue(id, validator){
+  const el=document.getElementById(id); const val=el.value.trim();
+  if(!val) return null;
+  if(!validator(val)){ el.style.border='2px solid red'; return false; }
+  el.style.border=''; return val;
+}
+
+// events
+document.getElementById('response_type').addEventListener('change', regeneratePkce);
+document.getElementById('use_pkce').addEventListener('change', regeneratePkce);
+
+document.getElementById('authForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+
+  const rt = document.getElementById('response_type').value || '';
+  const includesCode = /\bcode\b/.test(rt);
+  const method = currentAuthMethod();
+  const usePkce = document.getElementById('use_pkce').checked;
+
+  // требование: public + code → PKCE обязателен
+  if (method==='none' && includesCode && !usePkce){
+    alert('PKCE обязателен для public-клиента.');
+    return;
+  }
+
+  const baseParams = {
+    client_id: document.getElementById('client_id').value,
+    redirect_uri: document.getElementById('redirect_uri').value,
+    scope: document.getElementById('scope').value,
+    state: document.getElementById('state').value,
+    nonce: document.getElementById('nonce').value,
+    response_type: rt
+  };
+
+  if (includesCode && usePkce){
+    if (!baseParams.state || !document.getElementById('code_challenge').value){
+      alert('PKCE не сгенерирован.');
+      return;
     }
+    baseParams.code_challenge = document.getElementById('code_challenge').value;
+    baseParams.code_challenge_method = 'S256';
+  }
 
-    function isValidInteger(value) {
-      const parsed = parseInt(value, 10);
-      return !isNaN(parsed) && parsed >= 0 && parsed <= Number.MAX_SAFE_INTEGER;
-    }
+  // audience → пробел-разделённый список
+  const audOptions = Array.from(document.getElementById('audience').selectedOptions);
+  if (audOptions.length) {
+    baseParams.audience = audOptions.map(o=>o.value).join(' ');
+  }
 
-    function validateAndGetValue(id, validator) {
-      const el = document.getElementById(id);
-      const val = el.value.trim();
-      if (!val) {
-        el.style.border = "";
-        el.title = "";
-        return null;
-      }
-      if (!validator(val)) {
-        el.style.border = "2px solid red";
-        el.title = "Недопустимое значение";
-        return false;
-      }
-      el.style.border = "";
-      el.title = "";
-      return val;
-    }
+  const optionalParams = {};
+  const idTokenHint = validateAndGetValue('id_token_hint', v => v.length<5000);
+  const loginHint  = validateAndGetValue('login_hint',  v => v.length<=512);
+  const prompt     = validateAndGetValue('prompt',     isValidPrompt);
+  const maxAge     = validateAndGetValue('max_age',    isValidInteger);
+  const acrValues  = validateAndGetValue('acr_values', v => v.length<=1024);
 
-    document.getElementById('authForm').addEventListener('submit', function (e) {
-      e.preventDefault();
+  if ([idTokenHint, loginHint, prompt, maxAge, acrValues].includes(false)) {
+    alert('Проверьте введённые значения'); return;
+  }
+  if (idTokenHint) optionalParams.id_token_hint = idTokenHint;
+  if (loginHint)   optionalParams.login_hint    = loginHint;
+  if (prompt)      optionalParams.prompt        = prompt;
+  if (maxAge !== null) optionalParams.max_age   = maxAge;
+  if (acrValues)   optionalParams.acr_values    = acrValues;
 
-      const baseParams = {
-        client_id: document.getElementById('client_id').value,
-        redirect_uri: document.getElementById('redirect_uri').value,
-        scope: document.getElementById('scope').value,
-        state: document.getElementById('state').value,
-        nonce: document.getElementById('nonce').value,
-        response_type: document.getElementById('response_type').value,
-      };
+  const query = new URLSearchParams({ ...baseParams, ...optionalParams });
 
-      const optionalParams = {};
+  // discovery → authorization_endpoint
+  if (discovery===null) discovery = await getDiscovery();
+  let authEndpoint;
+  if (discovery?.authorization_endpoint) {
+    authEndpoint = discovery.authorization_endpoint;
+  } else {
+    const isLocal = ['localhost','127.0.0.1'].includes(location.hostname);
+    const hydraPort = isLocal ? 4444 : 3001;
+    authEndpoint = `${location.protocol}//${location.hostname}:${hydraPort}/oauth2/auth`;
+  }
 
-      const idTokenHint = validateAndGetValue('id_token_hint', v => typeof v === 'string');
-      const loginHint = validateAndGetValue('login_hint', v => typeof v === 'string');
-      const prompt = validateAndGetValue('prompt', isValidPrompt);
-      const maxAge = validateAndGetValue('max_age', isValidInteger);
-      const acrValues = validateAndGetValue('acr_values', v => typeof v === 'string');
+  window.location.href = `${authEndpoint}?${query.toString()}`;
+});
 
-      if ([idTokenHint, loginHint, prompt, maxAge, acrValues].includes(false)) {
-        alert("Проверьте введённые значения");
-        return;
-      }
-
-      if (idTokenHint) optionalParams.id_token_hint = idTokenHint;
-      if (loginHint) optionalParams.login_hint = loginHint;
-      if (prompt) optionalParams.prompt = prompt;
-      if (maxAge) optionalParams.max_age = maxAge;
-      if (acrValues) optionalParams.acr_values = acrValues;
-
-      const query = new URLSearchParams({ ...baseParams, ...optionalParams });
-
-      let hydraPort;
-      if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
-        hydraPort = 4444;
-      } else {
-        hydraPort = 3001;
-      }
-
-      const fullUrl = `${window.location.protocol}//${window.location.hostname}:${hydraPort}/oauth2/auth?${query.toString()}`;
-      window.location.href = fullUrl;
-    });
-
-    function generateUUIDv4() {
-      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-        const r = (crypto.getRandomValues(new Uint8Array(1))[0] & 15) >> 0;
-        const v = c === 'x' ? r : (r & 0x3 | 0x8);
-        return v.toString(16);
-      });
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('state').value = generateUUIDv4();
-      document.getElementById('nonce').value = generateUUIDv4();
-      loadClients();
-    });
+document.addEventListener('DOMContentLoaded', async ()=>{
+  discovery = await getDiscovery();
+  await loadClients();
+});
 </script>
 </body>
 </html>

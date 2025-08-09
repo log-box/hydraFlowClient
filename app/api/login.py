@@ -49,21 +49,31 @@ async def login_process(data: LoginFormSubmitData):
     logger.info("Start /login_process handler")
     context = get_session_context(data.session_id)
     if not data.continue_:
-        response = await httpx.AsyncClient().put(
-            f"{settings.HYDRA_PRIVATE_URL}/admin/oauth2/auth/requests/login/reject?login_challenge={data.login_challenge}",
-            json={
-                "error": data.error or "access_denied",
-                "error_description": data.error_description or "Пользователь отменил вход",
-            }
-        )
-        logger.info(f"Redirect error: {data.error}, description: {data.error_description}")
-        response.raise_for_status()
-        return {"redirect_url": response.json()["redirect_to"]}
+        async with httpx.AsyncClient() as client:
+            response = await client.put(
+                f"{settings.HYDRA_PRIVATE_URL}/admin/oauth2/auth/requests/login/reject?login_challenge={data.login_challenge}",
+                json={
+                    "error": data.error or "access_denied",
+                    "error_description": data.error_description or "Пользователь отменил вход",
+                }
+            )
+            logger.info(f"Redirect error: {data.error}, description: {data.error_description}")
+            response.raise_for_status()
+            return {"redirect_url": response.json()["redirect_to"]}
 
     missing = []
-    for field in ["subject", "credential", "acr", "amr", "extend_session_lifespan", "remember"]:
-        if getattr(data, field) is None:
-            missing.append(field)
+    missing.extend(
+        field
+        for field in [
+            "subject",
+            "credential",
+            "acr",
+            "amr",
+            "extend_session_lifespan",
+            "remember",
+        ]
+        if getattr(data, field) is None
+    )
     if missing:
         raise HTTPException(status_code=400, detail=f"Missing required fields: {', '.join(missing)}")
 
